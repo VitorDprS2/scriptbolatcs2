@@ -7,7 +7,7 @@ gui.Name = "NerdttkGUI"
 gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
--- ===== FUNÇÃO PARA ENCONTRAR A BOLA =====
+-- ===== FUNCAO PARA ENCONTRAR A BOLA =====
 local function findBall()
     local ball = workspace:FindFirstChild("Ball")
     if not ball then
@@ -20,15 +20,14 @@ local function findBall()
     return ball
 end
 
--- ===== FUNÇÃO PARA TROCAR A MESH =====
+-- ===== FUNCAO PARA TROCAR A MESH =====
 local function trocarMeshBola(meshId)
     local ball = findBall()
     if not ball then
-        warn("Bola não encontrada!")
+        warn("Bola nao encontrada!")
         return false
     end
     
-    -- Verifica se é MeshPart ou Part com SpecialMesh
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
     if not mesh then
         mesh = Instance.new("SpecialMesh")
@@ -42,7 +41,7 @@ local function trocarMeshBola(meshId)
     return true
 end
 
--- ===== FUNÇÃO PARA RENOMEAR =====
+-- ===== FUNCAO PARA RENOMEAR =====
 local function renameToNerdttk()
     local ball = findBall()
     if ball then
@@ -52,7 +51,7 @@ local function renameToNerdttk()
     return false
 end
 
--- ===== FUNÇÃO PARA RESETAR =====
+-- ===== FUNCAO PARA RESETAR =====
 local function resetBallName()
     local ball = findBall()
     if ball then
@@ -62,7 +61,7 @@ local function resetBallName()
     return false
 end
 
--- ===== FUNÇÃO PARA REMOVER TEXTURAS =====
+-- ===== FUNCAO PARA REMOVER TEXTURAS =====
 local function removerTexturas()
     local ball = findBall()
     if ball then
@@ -83,10 +82,9 @@ local function removerTexturas()
 end
 
 -- ============================================
--- ====== CRIAÇÃO DA UI ======
+-- ====== CRIACAO DA UI ======
 -- ============================================
 
--- Fundo escuro semi-transparente
 local background = Instance.new("Frame")
 background.Parent = gui
 background.Size = UDim2.new(1, 0, 1, 0)
@@ -94,7 +92,6 @@ background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 background.BackgroundTransparency = 0.5
 background.Active = true
 
--- Painel principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Parent = gui
 mainFrame.Size = UDim2.new(0, 360, 0, 520)
@@ -105,7 +102,6 @@ mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 
--- Sombra / borda brilhante
 local shadow = Instance.new("Frame")
 shadow.Parent = mainFrame
 shadow.Size = UDim2.new(1, 0, 1, 0)
@@ -118,12 +114,11 @@ local mainCorner = Instance.new("UICorner")
 mainCorner.Parent = mainFrame
 mainCorner.CornerRadius = UDim.new(0, 15)
 
--- Título com ícone
 local title = Instance.new("TextLabel")
 title.Parent = mainFrame
 title.Size = UDim2.new(1, 0, 0, 50)
 title.Position = UDim2.new(0, 0, 0, 0)
-title.Text = "⚽ ALTERADOR DE BALL"
+title.Text = "ALTERADOR DE BALL"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundColor3 = Color3.fromRGB(50, 40, 80)
 title.BackgroundTransparency = 0.3
@@ -135,23 +130,21 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.Parent = title
 titleCorner.CornerRadius = UDim.new(0, 15)
 
--- Subtítulo
 local subtitle = Instance.new("TextLabel")
 subtitle.Parent = mainFrame
 subtitle.Size = UDim2.new(1, 0, 0, 25)
 subtitle.Position = UDim2.new(0, 0, 0, 50)
-subtitle.Text = "Troque a aparência da bola"
+subtitle.Text = "Troque a aparencia da bola"
 subtitle.TextColor3 = Color3.fromRGB(180, 180, 200)
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
 subtitle.TextSize = 13
 
--- ===== CAMPO DE ID =====
 local idLabel = Instance.new("TextLabel")
 idLabel.Parent = mainFrame
 idLabel.Size = UDim2.new(0.8, 0, 0, 20)
 idLabel.Position = UDim2.new(0.1, 0, 0.17, 0)
-idLabel.Text = "🔗 ID da Mesh:"
+idLabel.Text = "ID da Mesh:"
 idLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 idLabel.BackgroundTransparency = 1
 idLabel.Font = Enum.Font.GothamBold
@@ -174,12 +167,11 @@ local idCorner = Instance.new("UICorner")
 idCorner.Parent = idInput
 idCorner.CornerRadius = UDim.new(0, 8)
 
--- ===== BOTÃO APLICAR MESH =====
 local aplicarMeshBtn = Instance.new("TextButton")
 aplicarMeshBtn.Parent = mainFrame
 aplicarMeshBtn.Size = UDim2.new(0.8, 0, 0, 40)
 aplicarMeshBtn.Position = UDim2.new(0.1, 0, 0.31, 0)
-aplicarMeshBtn.Text = "📦 APLICAR MESH"
+aplicarMeshBtn.Text = "APLICAR MESH"
 aplicarMeshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 aplicarMeshBtn.BackgroundColor3 = Color3.fromRGB(70, 50, 150)
 aplicarMeshBtn.Font = Enum.Font.GothamBold
@@ -189,12 +181,11 @@ local btnCorner1 = Instance.new("UICorner")
 btnCorner1.Parent = aplicarMeshBtn
 btnCorner1.CornerRadius = UDim.new(0, 8)
 
--- ===== BOTÃO BOLA NOVA (TOGGLE) =====
 local bolaNovaBtn = Instance.new("TextButton")
 bolaNovaBtn.Parent = mainFrame
 bolaNovaBtn.Size = UDim2.new(0.38, 0, 0, 40)
 bolaNovaBtn.Position = UDim2.new(0.06, 0, 0.40, 0)
-bolaNovaBtn.Text = "🔄 Nome: OFF"
+bolaNovaBtn.Text = "Nome: OFF"
 bolaNovaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
 bolaNovaBtn.Font = Enum.Font.GothamBold
@@ -204,12 +195,11 @@ local btnCorner2 = Instance.new("UICorner")
 btnCorner2.Parent = bolaNovaBtn
 btnCorner2.CornerRadius = UDim.new(0, 8)
 
--- ===== BOTÃO RENOMEAR =====
 local renomearBtn = Instance.new("TextButton")
 renomearBtn.Parent = mainFrame
 renomearBtn.Size = UDim2.new(0.38, 0, 0, 40)
 renomearBtn.Position = UDim2.new(0.56, 0, 0.40, 0)
-renomearBtn.Text = "✏️ Renomear"
+renomearBtn.Text = "Renomear"
 renomearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 renomearBtn.BackgroundColor3 = Color3.fromRGB(50, 70, 50)
 renomearBtn.Font = Enum.Font.GothamBold
@@ -219,12 +209,11 @@ local btnCorner3 = Instance.new("UICorner")
 btnCorner3.Parent = renomearBtn
 btnCorner3.CornerRadius = UDim.new(0, 8)
 
--- ===== BOTÃO REMOVER TEXTURA =====
 local removerTexBtn = Instance.new("TextButton")
 removerTexBtn.Parent = mainFrame
 removerTexBtn.Size = UDim2.new(0.38, 0, 0, 40)
 removerTexBtn.Position = UDim2.new(0.06, 0, 0.50, 0)
-removerTexBtn.Text = "🧹 Remover Tex"
+removerTexBtn.Text = "Remover Tex"
 removerTexBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
 removerTexBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
 removerTexBtn.Font = Enum.Font.GothamBold
@@ -234,12 +223,11 @@ local btnCorner4 = Instance.new("UICorner")
 btnCorner4.Parent = removerTexBtn
 btnCorner4.CornerRadius = UDim.new(0, 8)
 
--- ===== BOTÃO RESETAR =====
 local resetarBtn = Instance.new("TextButton")
 resetarBtn.Parent = mainFrame
 resetarBtn.Size = UDim2.new(0.38, 0, 0, 40)
 resetarBtn.Position = UDim2.new(0.56, 0, 0.50, 0)
-resetarBtn.Text = "🔁 Resetar"
+resetarBtn.Text = "Resetar"
 resetarBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 resetarBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 80)
 resetarBtn.Font = Enum.Font.GothamBold
@@ -249,23 +237,21 @@ local btnCorner5 = Instance.new("UICorner")
 btnCorner5.Parent = resetarBtn
 btnCorner5.CornerRadius = UDim.new(0, 8)
 
--- ===== STATUS =====
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Parent = mainFrame
 statusLabel.Size = UDim2.new(0.9, 0, 0, 30)
 statusLabel.Position = UDim2.new(0.05, 0, 0.60, 0)
-statusLabel.Text = "✅ Pronto!"
+statusLabel.Text = "Pronto!"
 statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextSize = 13
 
--- ===== BOTÃO FECHAR =====
 local closeBtn = Instance.new("TextButton")
 closeBtn.Parent = mainFrame
 closeBtn.Size = UDim2.new(0, 35, 0, 35)
 closeBtn.Position = UDim2.new(1, -42, 0, 8)
-closeBtn.Text = "✕"
+closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 closeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 closeBtn.BackgroundTransparency = 0.5
@@ -278,91 +264,84 @@ closeCorner.Parent = closeBtn
 closeCorner.CornerRadius = UDim.new(1, 0)
 
 -- ============================================
--- ====== AÇÕES DOS BOTÕES ======
+-- ====== ACOES DOS BOTOES ======
 -- ============================================
 
--- Aplicar Mesh
 aplicarMeshBtn.MouseButton1Click:Connect(function()
     local meshId = idInput.Text
     if meshId and meshId ~= "" then
         if trocarMeshBola(meshId) then
-            statusLabel.Text = "✅ Mesh aplicada com sucesso!"
+            statusLabel.Text = "Mesh aplicada com sucesso!"
             statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         else
-            statusLabel.Text = "❌ Bola não encontrada!"
+            statusLabel.Text = "Bola nao encontrada!"
             statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
     else
-        statusLabel.Text = "⚠️ Digite um ID válido!"
+        statusLabel.Text = "Digite um ID valido!"
         statusLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
     end
 end)
 
--- Bola Nova (Toggle)
 local bolaAtiva = false
 bolaNovaBtn.MouseButton1Click:Connect(function()
     bolaAtiva = not bolaAtiva
     if bolaAtiva then
-        bolaNovaBtn.Text = "🔄 Nome: ON"
+        bolaNovaBtn.Text = "Nome: ON"
         bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
         renameToNerdttk()
-        statusLabel.Text = "✅ Nome alterado para 'nerdttk'"
+        statusLabel.Text = "Nome alterado para nerdttk"
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
     else
-        bolaNovaBtn.Text = "🔄 Nome: OFF"
+        bolaNovaBtn.Text = "Nome: OFF"
         bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         resetBallName()
-        statusLabel.Text = "✅ Nome resetado para 'Ball'"
+        statusLabel.Text = "Nome resetado para Ball"
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
     end
 end)
 
--- Renomear
 renomearBtn.MouseButton1Click:Connect(function()
     if renameToNerdttk() then
-        statusLabel.Text = "✅ Renomeado para 'nerdttk'"
+        statusLabel.Text = "Renomeado para nerdttk"
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         bolaAtiva = true
-        bolaNovaBtn.Text = "🔄 Nome: ON"
+        bolaNovaBtn.Text = "Nome: ON"
         bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
     else
-        statusLabel.Text = "❌ Bola não encontrada!"
+        statusLabel.Text = "Bola nao encontrada!"
         statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
--- Remover Texturas
 removerTexBtn.MouseButton1Click:Connect(function()
     if removerTexturas() then
-        statusLabel.Text = "🧹 Texturas removidas!"
+        statusLabel.Text = "Texturas removidas!"
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
     else
-        statusLabel.Text = "❌ Bola não encontrada!"
+        statusLabel.Text = "Bola nao encontrada!"
         statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
--- Resetar
 resetarBtn.MouseButton1Click:Connect(function()
     if resetBallName() then
-        statusLabel.Text = "🔁 Nome resetado para 'Ball'"
+        statusLabel.Text = "Nome resetado para Ball"
         statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         bolaAtiva = false
-        bolaNovaBtn.Text = "🔄 Nome: OFF"
+        bolaNovaBtn.Text = "Nome: OFF"
         bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     else
-        statusLabel.Text = "❌ Bola não encontrada!"
+        statusLabel.Text = "Bola nao encontrada!"
         statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
--- Fechar
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
     background.Visible = mainFrame.Visible
 end)
 
--- Atalho: B para abrir/fechar
 local userInputService = game:GetService("UserInputService")
 userInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
@@ -372,7 +351,6 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- ===== INICIALIZAÇÃO =====
-print("⚽ Alterador de Ball nerdttk carregado!")
-print("📌 Pressione 'B' para abrir/fechar")
-print("🔗 ID padrão: rbxassetid://11765504")
+print("Alterador de Ball nerdttk carregado!")
+print("Pressione B para abrir/fechar")
+print("ID padrao: rbxassetid://11765504")
