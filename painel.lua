@@ -1,4 +1,4 @@
--- Script completo para alterar a bola com MeshId personalizado
+-- Script para alterar a bola em servidor privado
 -- Criado por: VitorDprS2
 
 local player = game.Players.LocalPlayer
@@ -7,53 +7,50 @@ gui.Name = "NerdttkGUI"
 gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
--- ===== FUNCAO AVANCADA PARA ENCONTRAR A BOLA =====
+-- ===== FUNCAO SUPER AVANCADA PARA ENCONTRAR A BOLA =====
 local function findBall()
-    -- Tenta encontrar pelo nome "Ball" primeiro
-    local ball = workspace:FindFirstChild("Ball")
-    if ball then
-        print("Bola encontrada como 'Ball'")
-        return ball
-    end
-    
-    -- Lista de nomes comuns para bola
-    local possibleNames = {"Ball", "Bola", "SoccerBall", "Football", "Futebol", "nerdttk", "Soccer", "FootBall", "BallHandle"}
-    for _, name in ipairs(possibleNames) do
-        ball = workspace:FindFirstChild(name)
-        if ball then
-            print("Bola encontrada como: " .. name)
-            return ball
-        end
-    end
-    
-    -- Procura por qualquer objeto que seja uma parte e tenha formato de bola
+    -- Procura em todo o workspace
     for _, child in ipairs(workspace:GetChildren()) do
+        -- Verifica se e uma parte
         if child:IsA("BasePart") then
-            -- Verifica se tem uma mesh de bola
+            -- Verifica se tem "ball" no nome (case insensitive)
+            if child.Name:lower():find("ball") or child.Name:lower():find("bola") or child.Name:lower():find("futebol") then
+                print("Bola encontrada: " .. child.Name)
+                return child
+            end
+            -- Verifica se tem mesh esferica
             local mesh = child:FindFirstChildWhichIsA("SpecialMesh")
             if mesh and mesh.MeshType == Enum.MeshType.Sphere then
                 print("Bola encontrada por mesh esferica: " .. child.Name)
                 return child
             end
-            -- Verifica se tem MeshPart com forma de bola
-            if child:IsA("MeshPart") and child.Name:lower():find("ball") then
+            -- Verifica se e uma MeshPart com forma de bola
+            if child:IsA("MeshPart") and child.MeshType == Enum.MeshType.Sphere then
                 print("Bola MeshPart encontrada: " .. child.Name)
                 return child
             end
         end
-    end
-    
-    -- Procura por qualquer objeto que contenha "ball" no nome (case insensitive)
-    for _, child in ipairs(workspace:GetChildren()) do
-        if child.Name:lower():find("ball") or child.Name:lower():find("bola") or child.Name:lower():find("futebol") then
-            if child:IsA("BasePart") then
-                print("Bola encontrada por nome contendo 'ball': " .. child.Name)
-                return child
+        -- Procura dentro de Models
+        if child:IsA("Model") then
+            for _, subchild in ipairs(child:GetChildren()) do
+                if subchild:IsA("BasePart") then
+                    if subchild.Name:lower():find("ball") or subchild.Name:lower():find("bola") then
+                        print("Bola encontrada dentro de Model: " .. subchild.Name)
+                        return subchild
+                    end
+                end
             end
         end
     end
     
-    print("Nenhuma bola encontrada no workspace!")
+    -- Procura por Handle (comum em jogos de futebol)
+    local handle = workspace:FindFirstChild("Handle")
+    if handle and handle:IsA("BasePart") then
+        print("Bola encontrada como Handle")
+        return handle
+    end
+    
+    print("Nenhuma bola encontrada!")
     return nil
 end
 
@@ -61,16 +58,34 @@ end
 local function trocarMeshBola(meshId)
     local ball = findBall()
     if not ball then
-        warn("Bola nao encontrada!")
         return false
     end
     
-    -- Se for MeshPart, nao pode mudar o MeshId diretamente
+    -- Se for MeshPart, tenta clonar e substituir
     if ball:IsA("MeshPart") then
-        warn("A bola e uma MeshPart, nao e possivel alterar o MeshId diretamente!")
-        return false
+        warn("A bola e uma MeshPart - tentando substituir...")
+        local newBall = Instance.new("Part")
+        newBall.Size = ball.Size
+        newBall.Position = ball.Position
+        newBall.CFrame = ball.CFrame
+        newBall.Anchored = ball.Anchored
+        newBall.CanCollide = ball.CanCollide
+        newBall.Transparency = ball.Transparency
+        newBall.BrickColor = ball.BrickColor
+        newBall.Parent = workspace
+        
+        local mesh = Instance.new("SpecialMesh")
+        mesh.Parent = newBall
+        mesh.MeshId = meshId
+        mesh.MeshType = Enum.MeshType.FileMesh
+        mesh.Scale = Vector3.new(1, 1, 1)
+        
+        ball:Destroy()
+        print("Bola substituida por nova com mesh: " .. meshId)
+        return true
     end
     
+    -- Para Part normal com SpecialMesh
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
     if not mesh then
         mesh = Instance.new("SpecialMesh")
@@ -89,7 +104,6 @@ local function renameToNerdttk()
     local ball = findBall()
     if ball then
         ball.Name = "nerdttk"
-        print("Bola renomeada para: nerdttk")
         return true
     end
     return false
@@ -100,7 +114,6 @@ local function resetBallName()
     local ball = findBall()
     if ball then
         ball.Name = "Ball"
-        print("Bola renomeada para: Ball")
         return true
     end
     return false
@@ -120,24 +133,42 @@ local function removerTexturas()
                 part:Destroy()
             end
         end
-        print("Texturas removidas!")
         return true
     end
     return false
 end
 
--- ===== FUNCAO PARA DEBUG =====
+-- ===== FUNCAO DE DEBUG =====
 local function debugWorkspace()
-    print("=== DEBUG: LISTANDO OBJETOS NO WORKSPACE ===")
-    for _, child in ipairs(workspace:GetChildren()) do
-        if child:IsA("BasePart") then
-            local mesh = child:FindFirstChildWhichIsA("SpecialMesh")
+    print("=== DEBUG: OBJETOS NO WORKSPACE ===")
+    local function scan(obj, level)
+        local indent = string.rep("  ", level)
+        if obj:IsA("BasePart") then
+            local mesh = obj:FindFirstChildWhichIsA("SpecialMesh")
             local meshType = mesh and mesh.MeshType or "Nenhuma"
-            print("- " .. child.Name .. " | Tipo: " .. child.ClassName .. " | Mesh: " .. tostring(meshType))
+            local meshId = mesh and mesh.MeshId or "Nenhum"
+            print(indent .. "- " .. obj.Name .. " | " .. obj.ClassName .. " | Mesh: " .. tostring(meshType) .. " | ID: " .. tostring(meshId))
+        else
+            print(indent .. "- " .. obj.Name .. " | " .. obj.ClassName)
+        end
+        for _, child in ipairs(obj:GetChildren()) do
+            scan(child, level + 1)
         end
     end
-    print("=== FIM DO DEBUG ===")
+    scan(workspace, 0)
+    print("=== FIM DEBUG ===")
 end
+
+-- ===== MONITORAR NOVAS BOLAS =====
+workspace.ChildAdded:Connect(function(child)
+    task.wait(1)
+    if child:IsA("BasePart") or child:IsA("Model") then
+        local ball = findBall()
+        if ball then
+            print("Nova bola detectada: " .. ball.Name)
+        end
+    end
+end)
 
 -- ============================================
 -- ====== CRIACAO DA UI ======
@@ -152,21 +183,13 @@ background.Active = true
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Parent = gui
-mainFrame.Size = UDim2.new(0, 360, 0, 520)
-mainFrame.Position = UDim2.new(0.5, -180, 0.5, -260)
+mainFrame.Size = UDim2.new(0, 360, 0, 550)
+mainFrame.Position = UDim2.new(0.5, -180, 0.5, -275)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 mainFrame.BackgroundTransparency = 0.05
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
-
-local shadow = Instance.new("Frame")
-shadow.Parent = mainFrame
-shadow.Size = UDim2.new(1, 0, 1, 0)
-shadow.Position = UDim2.new(0, 0, 0, 0)
-shadow.BackgroundColor3 = Color3.fromRGB(80, 60, 200)
-shadow.BackgroundTransparency = 0.8
-shadow.BorderSizePixel = 0
 
 local mainCorner = Instance.new("UICorner")
 mainCorner.Parent = mainFrame
@@ -182,7 +205,6 @@ title.BackgroundColor3 = Color3.fromRGB(50, 40, 80)
 title.BackgroundTransparency = 0.3
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
-title.TextScaled = false
 
 local titleCorner = Instance.new("UICorner")
 titleCorner.Parent = title
@@ -192,7 +214,7 @@ local subtitle = Instance.new("TextLabel")
 subtitle.Parent = mainFrame
 subtitle.Size = UDim2.new(1, 0, 0, 25)
 subtitle.Position = UDim2.new(0, 0, 0, 50)
-subtitle.Text = "Troque a aparencia da bola"
+subtitle.Text = "Servidor Privado - Troque a aparencia"
 subtitle.TextColor3 = Color3.fromRGB(180, 180, 200)
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
@@ -305,11 +327,10 @@ statusLabel.BackgroundTransparency = 1
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextSize = 13
 
--- Botao DEBUG
 local debugBtn = Instance.new("TextButton")
 debugBtn.Parent = mainFrame
 debugBtn.Size = UDim2.new(0.8, 0, 0, 30)
-debugBtn.Position = UDim2.new(0.1, 0, 0.67, 0)
+debugBtn.Position = UDim2.new(0.1, 0, 0.68, 0)
 debugBtn.Text = "DEBUG (Ver objetos)"
 debugBtn.TextColor3 = Color3.fromRGB(255, 255, 200)
 debugBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
@@ -412,7 +433,7 @@ end)
 
 debugBtn.MouseButton1Click:Connect(function()
     debugWorkspace()
-    statusLabel.Text = "Debug executado! Veja o console (F9)"
+    statusLabel.Text = "Debug executado! Veja F9"
     statusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 end)
 
@@ -431,18 +452,16 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- ===== INICIALIZACAO =====
-print("Alterador de Ball nerdttk carregado!")
+print("Alterador de Ball nerdttk - Servidor Privado")
 print("Pressione B para abrir/fechar")
-print("ID padrao: rbxassetid://11765504")
 
--- Tenta encontrar a bola ao iniciar
+-- Tenta encontrar a bola
 local ball = findBall()
 if ball then
-    print("Bola encontrada ao iniciar: " .. ball.Name)
-    statusLabel.Text = "Bola encontrada: " .. ball.Name
-    statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    print("Bola encontrada: " .. ball.Name .. " | Tipo: " .. ball.ClassName)
+    statusLabel.Text = "Bola: " .. ball.Name
 else
-    print("Nenhuma bola encontrada ao iniciar!")
+    print("Nenhuma bola encontrada! Tente chutar ou reiniciar a partida.")
     statusLabel.Text = "Nenhuma bola encontrada!"
     statusLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
 end
