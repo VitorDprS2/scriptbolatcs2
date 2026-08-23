@@ -188,26 +188,29 @@ function ApplyTexture(meshId, textureId)
         return false
     end
     
+    print("Bola encontrada: " .. ball.Name)
+    
     if ball:IsA("BasePart") then
-        local mesh = ball:FindFirstChildOfClass("SpecialMesh")
+        local allMeshes = ball:FindFirstChildOfClass("SpecialMesh")
         
-        if not mesh then
-            mesh = Instance.new("SpecialMesh")
-            mesh.MeshType = Enum.MeshType.Sphere
-            mesh.Parent = ball
+        if allMeshes then
+            allMeshes:Destroy()
+            print("Mesh antigo removido")
         end
         
-        if meshId ~= "" then
-            mesh.MeshId = meshId
+        if meshId ~= "" and textureId ~= "" then
+            local newMesh = Instance.new("SpecialMesh")
+            newMesh.MeshType = Enum.MeshType.Sphere
+            newMesh.MeshId = meshId
+            newMesh.TextureId = textureId
+            newMesh.Scale = Vector3.new(1, 1, 1)
+            newMesh.Parent = ball
+            
+            print("Novo mesh criado!")
+            print("MeshId: " .. meshId)
+            print("TextureId: " .. textureId)
         end
         
-        if textureId ~= "" then
-            mesh.TextureId = textureId
-        end
-        
-        mesh.Scale = Vector3.new(1, 1, 1)
-        
-        print("Textura aplicada com sucesso!")
         return true
     end
     
@@ -300,7 +303,7 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
-    if input.KeyCode == Enum.KeyCode.P then
+    if input.KeyCode == Enum.KeyCode.K then
         mainFrame.Visible = not mainFrame.Visible
     end
 end)
@@ -310,7 +313,7 @@ notification.Size = UDim2.new(0, 300, 0, 50)
 notification.Position = UDim2.new(0.5, -150, 0, 20)
 notification.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
 notification.BorderSizePixel = 0
-notification.Text = "Script Carregado! Pressione P"
+notification.Text = "Script Carregado! Pressione K"
 notification.TextColor3 = Color3.fromRGB(255, 255, 255)
 notification.TextSize = 14
 notification.Font = Enum.Font.GothamBold
@@ -323,4 +326,4 @@ notiCorner.Parent = notification
 task.wait(3)
 notification:Destroy()
 
-print("Script iniciado! Pressione P para abrir a UI")
+print("Script iniciado! Pressione K para abrir a UI")
