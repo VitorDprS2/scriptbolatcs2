@@ -1,10 +1,3 @@
---[[
-    NerdTTK Texture Mod Ball - The Classic Soccer
-    Script visual para trocar texturas da bola
-    Compativel com Xeno Executor
-    Apenas visual - Sem vantagem competitiva
-]]
-
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -12,32 +5,25 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Tabela de Texturas Disponiveis
 local textures = {
-    {name = "Bola Original", meshId = "rbxasset://textures/Blank.png", textureId = "rbxasset://textures/Blank.png"},
+    {name = "Bola Original", meshId = "", textureId = ""},
     {name = "Bola Fire", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066046"},
     {name = "Bola Neon", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066047"},
     {name = "Bola Cosmic", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066048"},
-    {name = "Bola Agua", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066049"},
-    {name = "Bola Espelho", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066050"},
-    {name = "Bola Madeira", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066051"},
 }
 
--- Configuracao da UI
 local UICorner = 15
 
--- Criar ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "NerdTTK_Texture_Mod"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Frame Principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 400, 0, 500)
-mainFrame.Position = UDim2.new(1, -420, 0.5, -250)
+mainFrame.Size = UDim2.new(0, 400, 0, 600)
+mainFrame.Position = UDim2.new(1, -420, 0.5, -300)
 mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = true
@@ -47,13 +33,11 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, UICorner)
 corner.Parent = mainFrame
 
--- Stroke para o frame
 local stroke = Instance.new("UIStroke")
 stroke.Color = Color3.fromRGB(100, 200, 255)
 stroke.Thickness = 2
 stroke.Parent = mainFrame
 
--- Titulo
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Name = "TitleLabel"
 titleLabel.Size = UDim2.new(1, 0, 0, 50)
@@ -70,7 +54,6 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, UICorner)
 titleCorner.Parent = titleLabel
 
--- Subtitulo
 local subtitleLabel = Instance.new("TextLabel")
 subtitleLabel.Name = "SubtitleLabel"
 subtitleLabel.Size = UDim2.new(1, 0, 0, 30)
@@ -83,11 +66,84 @@ subtitleLabel.TextSize = 12
 subtitleLabel.Font = Enum.Font.Gotham
 subtitleLabel.Parent = mainFrame
 
--- ScrollingFrame para as texturas
+local customMeshLabel = Instance.new("TextLabel")
+customMeshLabel.Name = "CustomMeshLabel"
+customMeshLabel.Size = UDim2.new(1, -10, 0, 20)
+customMeshLabel.Position = UDim2.new(0, 5, 0, 85)
+customMeshLabel.BackgroundTransparency = 1
+customMeshLabel.Text = "MeshID Customizado:"
+customMeshLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+customMeshLabel.TextSize = 12
+customMeshLabel.Font = Enum.Font.GothamBold
+customMeshLabel.TextXAlignment = Enum.TextXAlignment.Left
+customMeshLabel.Parent = mainFrame
+
+local customMeshInput = Instance.new("TextBox")
+customMeshInput.Name = "CustomMeshInput"
+customMeshInput.Size = UDim2.new(1, -10, 0, 30)
+customMeshInput.Position = UDim2.new(0, 5, 0, 105)
+customMeshInput.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
+customMeshInput.BorderSizePixel = 0
+customMeshInput.Text = "rbxassetid://12345678"
+customMeshInput.TextColor3 = Color3.fromRGB(100, 200, 255)
+customMeshInput.TextSize = 12
+customMeshInput.Font = Enum.Font.Gotham
+customMeshInput.PlaceholderText = "Cole o MeshID aqui"
+customMeshInput.Parent = mainFrame
+
+local meshCorner = Instance.new("UICorner")
+meshCorner.CornerRadius = UDim.new(0, 8)
+meshCorner.Parent = customMeshInput
+
+local customTextureLabel = Instance.new("TextLabel")
+customTextureLabel.Name = "CustomTextureLabel"
+customTextureLabel.Size = UDim2.new(1, -10, 0, 20)
+customTextureLabel.Position = UDim2.new(0, 5, 0, 140)
+customTextureLabel.BackgroundTransparency = 1
+customTextureLabel.Text = "TextureID Customizado:"
+customTextureLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+customTextureLabel.TextSize = 12
+customTextureLabel.Font = Enum.Font.GothamBold
+customTextureLabel.TextXAlignment = Enum.TextXAlignment.Left
+customTextureLabel.Parent = mainFrame
+
+local customTextureInput = Instance.new("TextBox")
+customTextureInput.Name = "CustomTextureInput"
+customTextureInput.Size = UDim2.new(1, -10, 0, 30)
+customTextureInput.Position = UDim2.new(0, 5, 0, 160)
+customTextureInput.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
+customTextureInput.BorderSizePixel = 0
+customTextureInput.Text = "rbxassetid://87654321"
+customTextureInput.TextColor3 = Color3.fromRGB(100, 200, 255)
+customTextureInput.TextSize = 12
+customTextureInput.Font = Enum.Font.Gotham
+customTextureInput.PlaceholderText = "Cole o TextureID aqui"
+customTextureInput.Parent = mainFrame
+
+local textureCorner = Instance.new("UICorner")
+textureCorner.CornerRadius = UDim.new(0, 8)
+textureCorner.Parent = customTextureInput
+
+local applyCustomButton = Instance.new("TextButton")
+applyCustomButton.Name = "ApplyCustomButton"
+applyCustomButton.Size = UDim2.new(1, -10, 0, 35)
+applyCustomButton.Position = UDim2.new(0, 5, 0, 195)
+applyCustomButton.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
+applyCustomButton.BorderSizePixel = 0
+applyCustomButton.Text = "Aplicar Customizado"
+applyCustomButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+applyCustomButton.TextSize = 13
+applyCustomButton.Font = Enum.Font.GothamBold
+applyCustomButton.Parent = mainFrame
+
+local customBtnCorner = Instance.new("UICorner")
+customBtnCorner.CornerRadius = UDim.new(0, 8)
+customBtnCorner.Parent = applyCustomButton
+
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Name = "ScrollFrame"
-scrollFrame.Size = UDim2.new(1, -10, 0, 350)
-scrollFrame.Position = UDim2.new(0, 5, 0, 85)
+scrollFrame.Size = UDim2.new(1, -10, 0, 280)
+scrollFrame.Position = UDim2.new(0, 5, 0, 235)
 scrollFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 scrollFrame.BorderSizePixel = 0
 scrollFrame.ScrollBarThickness = 6
@@ -95,13 +151,11 @@ scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 200, 255)
 scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #textures * 55 + 20)
 scrollFrame.Parent = mainFrame
 
--- UIListLayout no ScrollFrame
 local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 8)
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = scrollFrame
 
--- Padding
 local padding = Instance.new("UIPadding")
 padding.PaddingLeft = UDim.new(0, 5)
 padding.PaddingRight = UDim.new(0, 5)
@@ -109,7 +163,6 @@ padding.PaddingTop = UDim.new(0, 5)
 padding.PaddingBottom = UDim.new(0, 5)
 padding.Parent = scrollFrame
 
--- Criar botoes de texturas
 local textureButtons = {}
 
 for index, texture in ipairs(textures) do
@@ -130,7 +183,6 @@ for index, texture in ipairs(textures) do
     btnStroke.Thickness = 1
     btnStroke.Parent = button
     
-    -- Label do nome
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(0.7, 0, 1, 0)
     nameLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -142,7 +194,6 @@ for index, texture in ipairs(textures) do
     nameLabel.TextXAlignment = Enum.TextXAlignment.Left
     nameLabel.Parent = button
     
-    -- Icone de aplicar
     local iconLabel = Instance.new("TextLabel")
     iconLabel.Size = UDim2.new(0.3, 0, 1, 0)
     iconLabel.Position = UDim2.new(0.7, 0, 0, 0)
@@ -154,17 +205,14 @@ for index, texture in ipairs(textures) do
     iconLabel.TextXAlignment = Enum.TextXAlignment.Right
     iconLabel.Parent = button
     
-    -- Funcao ao clicar
     button.MouseButton1Click:Connect(function()
         ApplyTexture(texture)
         
-        -- Efeito visual
         button.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
         task.wait(0.1)
         button.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
     end)
     
-    -- Hover effect
     button.MouseEnter:Connect(function()
         button.BackgroundColor3 = Color3.fromRGB(35, 75, 110)
         btnStroke.Color = Color3.fromRGB(100, 200, 255)
@@ -179,54 +227,76 @@ for index, texture in ipairs(textures) do
     table.insert(textureButtons, button)
 end
 
--- Footer
 local footerLabel = Instance.new("TextLabel")
 footerLabel.Name = "FooterLabel"
 footerLabel.Size = UDim2.new(1, 0, 0, 30)
 footerLabel.Position = UDim2.new(0, 0, 1, -30)
 footerLabel.BackgroundColor3 = Color3.fromRGB(20, 35, 50)
 footerLabel.BorderSizePixel = 0
-footerLabel.Text = "Press [P] to Toggle - Made by NerdTTK"
+footerLabel.Text = "Press P to Toggle"
 footerLabel.TextColor3 = Color3.fromRGB(100, 150, 180)
 footerLabel.TextSize = 10
 footerLabel.Font = Enum.Font.Gotham
 footerLabel.Parent = mainFrame
 
--- Funcao para aplicar textura
 function ApplyTexture(texture)
     local workspace = game:GetService("Workspace")
-    local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("soccer_ball")
+    local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("soccer_ball") or workspace:FindFirstChild("part")
     
     if not ball then
-        print("Bola nao encontrada!")
+        print("Ball not found!")
         return
     end
     
-    -- Aplicar texture na bola
-    if ball:IsA("Part") then
-        ball.Color = Color3.fromRGB(255, 255, 255)
-        
-        if ball:FindFirstChild("Mesh") then
-            local mesh = ball.Mesh
+    if ball:IsA("Part") or ball:IsA("BasePart") then
+        if texture.meshId ~= "" and texture.textureId ~= "" then
+            local mesh = ball:FindFirstChild("SpecialMesh")
+            
+            if not mesh then
+                mesh = Instance.new("SpecialMesh")
+                mesh.MeshType = Enum.MeshType.Sphere
+                mesh.Parent = ball
+            end
+            
             mesh.MeshId = texture.meshId
             mesh.TextureId = texture.textureId
-        else
-            local newMesh = Instance.new("SpecialMesh")
-            newMesh.MeshType = Enum.MeshType.Sphere
-            newMesh.MeshId = texture.meshId
-            newMesh.TextureId = texture.textureId
-            newMesh.Parent = ball
-        end
-        
-        if ball:FindFirstChild("SurfaceGui") then
-            ball.SurfaceGui:Destroy()
+            mesh.Scale = Vector3.new(1, 1, 1)
         end
     end
     
-    print("Textura aplicada: " .. texture.name)
+    print("Texture applied: " .. texture.name)
 end
 
--- Toggle da UI com P
+applyCustomButton.MouseButton1Click:Connect(function()
+    local customMesh = customMeshInput.Text
+    local customTexture = customTextureInput.Text
+    
+    if customMesh == "" or customTexture == "" then
+        print("Please fill in both fields!")
+        return
+    end
+    
+    local customTextureData = {
+        name = "Custom Texture",
+        meshId = customMesh,
+        textureId = customTexture
+    }
+    
+    ApplyTexture(customTextureData)
+    
+    applyCustomButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    task.wait(0.1)
+    applyCustomButton.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
+end)
+
+applyCustomButton.MouseEnter:Connect(function()
+    applyCustomButton.BackgroundColor3 = Color3.fromRGB(70, 170, 240)
+end)
+
+applyCustomButton.MouseLeave:Connect(function()
+    applyCustomButton.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
+end)
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
@@ -235,13 +305,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Notificacao de script carregado
 local notification = Instance.new("TextLabel")
 notification.Size = UDim2.new(0, 300, 0, 50)
 notification.Position = UDim2.new(0.5, -150, 0, 20)
 notification.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
 notification.BorderSizePixel = 0
-notification.Text = "NerdTTK Texture Mod Carregado!"
+notification.Text = "NerdTTK Texture Mod Loaded!"
 notification.TextColor3 = Color3.fromRGB(255, 255, 255)
 notification.TextSize = 14
 notification.Font = Enum.Font.GothamBold
@@ -254,6 +323,6 @@ notiCorner.Parent = notification
 task.wait(3)
 notification:Destroy()
 
-print("NerdTTK Texture Mod Ball - Script Iniciado!")
-print("Pressione P para abrir/fechar a UI")
-print("Selecione uma textura para aplicar")
+print("NerdTTK Texture Mod Ball - Script Started!")
+print("Press P to toggle UI")
+print("Enter custom MeshID and TextureID to apply")
