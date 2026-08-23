@@ -1,9 +1,7 @@
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 
 local textures = {
     {name = "Bola Original", meshId = "", textureId = ""},
@@ -11,8 +9,6 @@ local textures = {
     {name = "Bola Neon", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066047"},
     {name = "Bola Cosmic", meshId = "rbxassetid://9475066045", textureId = "rbxassetid://9475066048"},
 }
-
-local UICorner = 15
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "NerdTTK_Texture_Mod"
@@ -30,7 +26,7 @@ mainFrame.ClipsDescendants = true
 mainFrame.Parent = screenGui
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, UICorner)
+corner.CornerRadius = UDim.new(0, 15)
 corner.Parent = mainFrame
 
 local stroke = Instance.new("UIStroke")
@@ -51,7 +47,7 @@ titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, UICorner)
+titleCorner.CornerRadius = UDim.new(0, 15)
 titleCorner.Parent = titleLabel
 
 local subtitleLabel = Instance.new("TextLabel")
@@ -60,7 +56,7 @@ subtitleLabel.Size = UDim2.new(1, 0, 0, 30)
 subtitleLabel.Position = UDim2.new(0, 0, 0, 50)
 subtitleLabel.BackgroundColor3 = Color3.fromRGB(20, 35, 50)
 subtitleLabel.BorderSizePixel = 0
-subtitleLabel.Text = "Apenas Visual - Sem Vantagem"
+subtitleLabel.Text = "The Classic Soccer Ball Texture Mod"
 subtitleLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 subtitleLabel.TextSize = 12
 subtitleLabel.Font = Enum.Font.Gotham
@@ -71,7 +67,7 @@ customMeshLabel.Name = "CustomMeshLabel"
 customMeshLabel.Size = UDim2.new(1, -10, 0, 20)
 customMeshLabel.Position = UDim2.new(0, 5, 0, 85)
 customMeshLabel.BackgroundTransparency = 1
-customMeshLabel.Text = "MeshID Customizado:"
+customMeshLabel.Text = "MeshID:"
 customMeshLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
 customMeshLabel.TextSize = 12
 customMeshLabel.Font = Enum.Font.GothamBold
@@ -84,11 +80,11 @@ customMeshInput.Size = UDim2.new(1, -10, 0, 30)
 customMeshInput.Position = UDim2.new(0, 5, 0, 105)
 customMeshInput.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
 customMeshInput.BorderSizePixel = 0
-customMeshInput.Text = "rbxassetid://12345678"
+customMeshInput.Text = ""
 customMeshInput.TextColor3 = Color3.fromRGB(100, 200, 255)
 customMeshInput.TextSize = 12
 customMeshInput.Font = Enum.Font.Gotham
-customMeshInput.PlaceholderText = "Cole o MeshID aqui"
+customMeshInput.PlaceholderText = "rbxassetid://12345678"
 customMeshInput.Parent = mainFrame
 
 local meshCorner = Instance.new("UICorner")
@@ -100,7 +96,7 @@ customTextureLabel.Name = "CustomTextureLabel"
 customTextureLabel.Size = UDim2.new(1, -10, 0, 20)
 customTextureLabel.Position = UDim2.new(0, 5, 0, 140)
 customTextureLabel.BackgroundTransparency = 1
-customTextureLabel.Text = "TextureID Customizado:"
+customTextureLabel.Text = "TextureID:"
 customTextureLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
 customTextureLabel.TextSize = 12
 customTextureLabel.Font = Enum.Font.GothamBold
@@ -113,11 +109,11 @@ customTextureInput.Size = UDim2.new(1, -10, 0, 30)
 customTextureInput.Position = UDim2.new(0, 5, 0, 160)
 customTextureInput.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
 customTextureInput.BorderSizePixel = 0
-customTextureInput.Text = "rbxassetid://87654321"
+customTextureInput.Text = ""
 customTextureInput.TextColor3 = Color3.fromRGB(100, 200, 255)
 customTextureInput.TextSize = 12
 customTextureInput.Font = Enum.Font.Gotham
-customTextureInput.PlaceholderText = "Cole o TextureID aqui"
+customTextureInput.PlaceholderText = "rbxassetid://87654321"
 customTextureInput.Parent = mainFrame
 
 local textureCorner = Instance.new("UICorner")
@@ -163,7 +159,60 @@ padding.PaddingTop = UDim.new(0, 5)
 padding.PaddingBottom = UDim.new(0, 5)
 padding.Parent = scrollFrame
 
-local textureButtons = {}
+function FindBall()
+    local workspace = game:GetService("Workspace")
+    
+    local ball = workspace:FindFirstChild("Ball")
+    if ball then return ball end
+    
+    ball = workspace:FindFirstChild("soccer_ball")
+    if ball then return ball end
+    
+    ball = workspace:FindFirstChild("SoccerBall")
+    if ball then return ball end
+    
+    for _, part in pairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and (part.Name:lower():find("ball") or part.Name:lower():find("soccer")) then
+            return part
+        end
+    end
+    
+    return nil
+end
+
+function ApplyTexture(meshId, textureId)
+    local ball = FindBall()
+    
+    if not ball then
+        print("Bola nao encontrada!")
+        return false
+    end
+    
+    if ball:IsA("BasePart") then
+        local mesh = ball:FindFirstChildOfClass("SpecialMesh")
+        
+        if not mesh then
+            mesh = Instance.new("SpecialMesh")
+            mesh.MeshType = Enum.MeshType.Sphere
+            mesh.Parent = ball
+        end
+        
+        if meshId ~= "" then
+            mesh.MeshId = meshId
+        end
+        
+        if textureId ~= "" then
+            mesh.TextureId = textureId
+        end
+        
+        mesh.Scale = Vector3.new(1, 1, 1)
+        
+        print("Textura aplicada com sucesso!")
+        return true
+    end
+    
+    return false
+end
 
 for index, texture in ipairs(textures) do
     local button = Instance.new("TextButton")
@@ -206,8 +255,7 @@ for index, texture in ipairs(textures) do
     iconLabel.Parent = button
     
     button.MouseButton1Click:Connect(function()
-        ApplyTexture(texture)
-        
+        ApplyTexture(texture.meshId, texture.textureId)
         button.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
         task.wait(0.1)
         button.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
@@ -223,66 +271,18 @@ for index, texture in ipairs(textures) do
         button.BackgroundColor3 = Color3.fromRGB(25, 45, 65)
         btnStroke.Thickness = 1
     end)
-    
-    table.insert(textureButtons, button)
-end
-
-local footerLabel = Instance.new("TextLabel")
-footerLabel.Name = "FooterLabel"
-footerLabel.Size = UDim2.new(1, 0, 0, 30)
-footerLabel.Position = UDim2.new(0, 0, 1, -30)
-footerLabel.BackgroundColor3 = Color3.fromRGB(20, 35, 50)
-footerLabel.BorderSizePixel = 0
-footerLabel.Text = "Press P to Toggle"
-footerLabel.TextColor3 = Color3.fromRGB(100, 150, 180)
-footerLabel.TextSize = 10
-footerLabel.Font = Enum.Font.Gotham
-footerLabel.Parent = mainFrame
-
-function ApplyTexture(texture)
-    local workspace = game:GetService("Workspace")
-    local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("soccer_ball") or workspace:FindFirstChild("part")
-    
-    if not ball then
-        print("Ball not found!")
-        return
-    end
-    
-    if ball:IsA("Part") or ball:IsA("BasePart") then
-        if texture.meshId ~= "" and texture.textureId ~= "" then
-            local mesh = ball:FindFirstChild("SpecialMesh")
-            
-            if not mesh then
-                mesh = Instance.new("SpecialMesh")
-                mesh.MeshType = Enum.MeshType.Sphere
-                mesh.Parent = ball
-            end
-            
-            mesh.MeshId = texture.meshId
-            mesh.TextureId = texture.textureId
-            mesh.Scale = Vector3.new(1, 1, 1)
-        end
-    end
-    
-    print("Texture applied: " .. texture.name)
 end
 
 applyCustomButton.MouseButton1Click:Connect(function()
     local customMesh = customMeshInput.Text
     local customTexture = customTextureInput.Text
     
-    if customMesh == "" or customTexture == "" then
-        print("Please fill in both fields!")
+    if customMesh == "" and customTexture == "" then
+        print("Preencha pelo menos um campo!")
         return
     end
     
-    local customTextureData = {
-        name = "Custom Texture",
-        meshId = customMesh,
-        textureId = customTexture
-    }
-    
-    ApplyTexture(customTextureData)
+    ApplyTexture(customMesh, customTexture)
     
     applyCustomButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
     task.wait(0.1)
@@ -310,7 +310,7 @@ notification.Size = UDim2.new(0, 300, 0, 50)
 notification.Position = UDim2.new(0.5, -150, 0, 20)
 notification.BackgroundColor3 = Color3.fromRGB(50, 150, 220)
 notification.BorderSizePixel = 0
-notification.Text = "NerdTTK Texture Mod Loaded!"
+notification.Text = "Script Carregado! Pressione P"
 notification.TextColor3 = Color3.fromRGB(255, 255, 255)
 notification.TextSize = 14
 notification.Font = Enum.Font.GothamBold
@@ -323,6 +323,4 @@ notiCorner.Parent = notification
 task.wait(3)
 notification:Destroy()
 
-print("NerdTTK Texture Mod Ball - Script Started!")
-print("Press P to toggle UI")
-print("Enter custom MeshID and TextureID to apply")
+print("Script iniciado! Pressione P para abrir a UI")
