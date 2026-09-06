@@ -1,4 +1,4 @@
--- Script para TCS com Reach, Hitbox e ESP
+-- TCS - Alterador de Ball com Reach, Hitbox e ESP
 -- Criado por: VitorDprS2
 
 local player = game.Players.LocalPlayer
@@ -7,17 +7,17 @@ gui.Name = "NerdttkGUI"
 gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
--- ===== VARIAVEIS GLOBAIS =====
+-- ===== VARIAVEIS =====
 local reachMultiplier = 1
 local espEnabled = false
 local hitboxVisible = false
 local hitboxPart = nil
+local espHighlights = {}
 
 -- ===== FUNCAO PARA ENCONTRAR A BOLA =====
 local function findBall()
     local ball = workspace:FindFirstChild("TPS")
     if ball then return ball end
-    
     for _, child in ipairs(workspace:GetChildren()) do
         if child:IsA("BasePart") then
             local nome = child.Name:lower()
@@ -29,59 +29,34 @@ local function findBall()
     return nil
 end
 
--- ===== FUNCAO PARA PEGAR O REACH (Character.Humanoid) =====
-local function getReach()
+-- ===== REACH =====
+local function getHumanoid()
     local char = player.Character
     if not char then return nil end
-    local humanoid = char:FindFirstChild("Humanoid")
-    if not humanoid then return nil end
-    return humanoid
+    return char:FindFirstChild("Humanoid")
 end
 
--- ===== FUNCAO PARA ALTERAR REACH =====
-local function alterarReach(valor)
-    local humanoid = getReach()
-    if not humanoid then
-        print("Humanoid nao encontrado!")
-        return false
-    end
-    
-    -- Tenta diferentes propriedades de alcance
-    local propriedades = {"Reach", "InteractDistance", "GrabDistance", "PickupDistance"}
-    local alterado = false
-    
-    for _, prop in ipairs(propriedades) do
-        if humanoid:FindFirstChild(prop) then
-            pcall(function()
-                humanoid[prop] = valor
-                print("Reach alterado para: " .. valor .. " (via " .. prop .. ")")
-                alterado = true
-            end)
+local function aplicarReach(valor)
+    local humanoid = getHumanoid()
+    if not humanoid then return false end
+    local props = {"Reach", "InteractDistance", "GrabDistance", "PickupDistance"}
+    local ok = false
+    for _, p in ipairs(props) do
+        if humanoid:FindFirstChild(p) then
+            pcall(function() humanoid[p] = valor; ok = true end)
         end
     end
-    
-    -- Se nao achou propriedade especifica, tenta via atributo
-    if not alterado then
-        pcall(function()
-            humanoid:SetAttribute("Reach", valor)
-            print("Reach alterado para: " .. valor .. " (via atributo)")
-            alterado = true
-        end)
+    if not ok then
+        pcall(function() humanoid:SetAttribute("Reach", valor); ok = true end)
     end
-    
-    return alterado
+    return ok
 end
 
--- ===== FUNCAO PARA CRIAR HITBOX VISUAL =====
+-- ===== HITBOX =====
 local function criarHitbox()
     removerHitbox()
-    
     local ball = findBall()
-    if not ball then
-        print("Bola nao encontrada para hitbox!")
-        return
-    end
-    
+    if not ball then return end
     hitboxPart = Instance.new("Part")
     hitboxPart.Name = "HitboxVisual"
     hitboxPart.Size = ball.Size * 1.5
@@ -92,28 +67,20 @@ local function criarHitbox()
     hitboxPart.BrickColor = BrickColor.new("Bright red")
     hitboxPart.Material = Enum.Material.SmoothPlastic
     hitboxPart.Parent = workspace
-    
-    -- Wireframe para ficar mais visivel
-    local boxHandle = Instance.new("BoxHandleAdornment")
-    boxHandle.Parent = hitboxPart
-    boxHandle.Adornee = hitboxPart
-    boxHandle.Size = hitboxPart.Size
-    boxHandle.AlwaysOnTop = true
-    boxHandle.ZIndex = 10
-    boxHandle.Color3 = Color3.fromRGB(255, 0, 0)
-    boxHandle.Transparency = 0.3
-    
-    print("Hitbox criada!")
+    local adorn = Instance.new("BoxHandleAdornment")
+    adorn.Parent = hitboxPart
+    adorn.Adornee = hitboxPart
+    adorn.Size = hitboxPart.Size
+    adorn.AlwaysOnTop = true
+    adorn.ZIndex = 10
+    adorn.Color3 = Color3.fromRGB(255, 0, 0)
+    adorn.Transparency = 0.3
     hitboxVisible = true
 end
 
 local function removerHitbox()
-    if hitboxPart then
-        hitboxPart:Destroy()
-        hitboxPart = nil
-    end
+    if hitboxPart then hitboxPart:Destroy(); hitboxPart = nil end
     hitboxVisible = false
-    print("Hitbox removida!")
 end
 
 local function atualizarHitbox()
@@ -122,136 +89,90 @@ local function atualizarHitbox()
     if ball then
         hitboxPart.Position = ball.Position
         hitboxPart.Size = ball.Size * 1.5
-        local adornment = hitboxPart:FindFirstChildWhichIsA("BoxHandleAdornment")
-        if adornment then
-            adornment.Size = hitboxPart.Size
-        end
+        local adorn = hitboxPart:FindFirstChildWhichIsA("BoxHandleAdornment")
+        if adorn then adorn.Size = hitboxPart.Size end
     end
 end
 
--- ===== FUNCAO ESP PARA A BOLA =====
+-- ===== ESP =====
 local function toggleESP()
     espEnabled = not espEnabled
-    
     if espEnabled then
-        criarESP()
+        local ball = findBall()
+        if ball then
+            local h = Instance.new("Highlight")
+            h.Parent = ball
+            h.FillColor = Color3.fromRGB(0, 255, 0)
+            h.FillTransparency = 0.5
+            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+            h.OutlineTransparency = 0
+            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            table.insert(espHighlights, h)
+            local ping = Instance.new("BillboardGui")
+            ping.Name = "ESPPing"
+            ping.Parent = ball
+            ping.Size = UDim2.new(0, 100, 0, 50)
+            ping.StudsOffset = Vector3.new(0, 4, 0)
+            ping.AlwaysOnTop = true
+            local lbl = Instance.new("TextLabel")
+            lbl.Parent = ping
+            lbl.Size = UDim2.new(1, 0, 1, 0)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = "BOLA"
+            lbl.TextColor3 = Color3.fromRGB(0, 255, 0)
+            lbl.TextScaled = true
+            lbl.Font = Enum.Font.GothamBold
+            lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            lbl.TextStrokeTransparency = 0.3
+            print("ESP ativado!")
+        else
+            print("Bola nao encontrada para ESP")
+            espEnabled = false
+        end
     else
-        removerESP()
+        for _, h in ipairs(espHighlights) do pcall(function() h:Destroy() end) end
+        espHighlights = {}
+        local ball = findBall()
+        if ball then
+            local ping = ball:FindFirstChild("ESPPing")
+            if ping then ping:Destroy() end
+        end
+        print("ESP desativado!")
     end
 end
 
-local espHighlights = {}
-
-local function criarESP()
-    removerESP()
-    
+-- ===== MESH =====
+local function trocarMesh(meshId)
     local ball = findBall()
-    if not ball then
-        print("Bola nao encontrada para ESP!")
-        return
-    end
-    
-    -- Highlight na bola
-    local highlight = Instance.new("Highlight")
-    highlight.Parent = ball
-    highlight.FillColor = Color3.fromRGB(0, 255, 0)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.OutlineTransparency = 0
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    table.insert(espHighlights, highlight)
-    
-    -- Adiciona uma seta/ping acima da bola
-    local ping = Instance.new("BillboardGui")
-    ping.Name = "ESPPing"
-    ping.Parent = ball
-    ping.Size = UDim2.new(0, 100, 0, 50)
-    ping.StudsOffset = Vector3.new(0, 4, 0)
-    ping.AlwaysOnTop = true
-    
-    local label = Instance.new("TextLabel")
-    label.Parent = ping
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = "⚽ BOLA"
-    label.TextColor3 = Color3.fromRGB(0, 255, 0)
-    label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
-    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    label.TextStrokeTransparency = 0.3
-    
-    print("ESP ativado!")
-end
-
-local function removerESP()
-    for _, h in ipairs(espHighlights) do
-        pcall(function() h:Destroy() end)
-    end
-    espHighlights = {}
-    
-    -- Remove pings
-    local ball = findBall()
-    if ball then
-        local ping = ball:FindFirstChild("ESPPing")
-        if ping then ping:Destroy() end
-    end
-    
-    print("ESP desativado!")
-end
-
--- ===== FUNCAO PARA TROCAR A MESH =====
-local function trocarMeshBola(meshId)
-    local ball = findBall()
-    if not ball then
-        warn("Bola nao encontrada!")
-        return false
-    end
-    
+    if not ball then return false end
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
-    if not mesh then
-        mesh = Instance.new("SpecialMesh")
-        mesh.Parent = ball
-    end
-    
+    if not mesh then mesh = Instance.new("SpecialMesh", ball) end
     mesh.MeshId = meshId
     mesh.MeshType = Enum.MeshType.FileMesh
     mesh.Scale = Vector3.new(1, 1, 1)
-    print("Mesh alterada para: " .. meshId)
     return true
 end
 
--- ===== FUNCAO PARA RENOMEAR =====
 local function renameToNerdttk()
     local ball = findBall()
-    if ball then
-        ball.Name = "nerdttk"
-        return true
-    end
+    if ball then ball.Name = "nerdttk"; return true end
     return false
 end
 
 local function resetBallName()
     local ball = findBall()
-    if ball then
-        ball.Name = "TPS"
-        return true
-    end
+    if ball then ball.Name = "TPS"; return true end
     return false
 end
 
--- ===== FUNCAO PARA REMOVER TEXTURAS =====
 local function removerTexturas()
     local ball = findBall()
     if ball then
-        for _, child in ipairs(ball:GetChildren()) do
-            if child:IsA("Texture") or child:IsA("Decal") then
-                child:Destroy()
-            end
+        for _, c in ipairs(ball:GetChildren()) do
+            if c:IsA("Texture") or c:IsA("Decal") then c:Destroy() end
         end
-        for _, part in ipairs(ball:GetDescendants()) do
-            if part:IsA("Texture") or part:IsA("Decal") then
-                part:Destroy()
-            end
+        for _, p in ipairs(ball:GetDescendants()) do
+            if p:IsA("Texture") or p:IsA("Decal") then p:Destroy() end
         end
         return true
     end
@@ -259,35 +180,29 @@ local function removerTexturas()
 end
 
 -- ============================================
--- ====== CRIACAO DA UI ======
+-- ====== UI ======
 -- ============================================
 
--- Background
-local background = Instance.new("Frame")
-background.Parent = gui
-background.Size = UDim2.new(1, 0, 1, 0)
-background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-background.BackgroundTransparency = 0.5
-background.Active = true
+local bg = Instance.new("Frame")
+bg.Parent = gui
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bg.BackgroundTransparency = 0.5
 
--- Painel principal
-local mainFrame = Instance.new("Frame")
-mainFrame.Parent = gui
-mainFrame.Size = UDim2.new(0, 420, 0, 600)
-mainFrame.Position = UDim2.new(0.5, -210, 0.5, -300)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-mainFrame.BackgroundTransparency = 0.05
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
+local main = Instance.new("Frame")
+main.Parent = gui
+main.Size = UDim2.new(0, 420, 0, 580)
+main.Position = UDim2.new(0.5, -210, 0.5, -290)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+main.BackgroundTransparency = 0.05
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
 
-local mainCorner = Instance.new("UICorner")
-mainCorner.Parent = mainFrame
-mainCorner.CornerRadius = UDim.new(0, 15)
+local mc = Instance.new("UICorner", main)
+mc.CornerRadius = UDim.new(0, 15)
 
--- TITULO
-local title = Instance.new("TextLabel")
-title.Parent = mainFrame
+local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, 45)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.Text = "TCS - ALTERADOR DE BALL"
@@ -297,19 +212,16 @@ title.BackgroundTransparency = 0.3
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 
-local titleCorner = Instance.new("UICorner")
-titleCorner.Parent = title
-titleCorner.CornerRadius = UDim.new(0, 15)
+local tc = Instance.new("UICorner", title)
+tc.CornerRadius = UDim.new(0, 15)
 
--- ===== ABAS =====
-local abaContainer = Instance.new("Frame")
-abaContainer.Parent = mainFrame
+-- ABAS
+local abaContainer = Instance.new("Frame", main)
 abaContainer.Size = UDim2.new(1, 0, 0, 35)
 abaContainer.Position = UDim2.new(0, 0, 0, 45)
 abaContainer.BackgroundTransparency = 1
 
-local aba1 = Instance.new("TextButton")
-aba1.Parent = abaContainer
+local aba1 = Instance.new("TextButton", abaContainer)
 aba1.Size = UDim2.new(0.33, 0, 1, 0)
 aba1.Position = UDim2.new(0, 0, 0, 0)
 aba1.Text = "Bola"
@@ -319,8 +231,7 @@ aba1.Font = Enum.Font.GothamBold
 aba1.TextSize = 13
 aba1.BorderSizePixel = 0
 
-local aba2 = Instance.new("TextButton")
-aba2.Parent = abaContainer
+local aba2 = Instance.new("TextButton", abaContainer)
 aba2.Size = UDim2.new(0.33, 0, 1, 0)
 aba2.Position = UDim2.new(0.33, 0, 0, 0)
 aba2.Text = "Reach"
@@ -330,8 +241,7 @@ aba2.Font = Enum.Font.GothamBold
 aba2.TextSize = 13
 aba2.BorderSizePixel = 0
 
-local aba3 = Instance.new("TextButton")
-aba3.Parent = abaContainer
+local aba3 = Instance.new("TextButton", abaContainer)
 aba3.Size = UDim2.new(0.34, 0, 1, 0)
 aba3.Position = UDim2.new(0.66, 0, 0, 0)
 aba3.Text = "ESP/Hitbox"
@@ -341,16 +251,13 @@ aba3.Font = Enum.Font.GothamBold
 aba3.TextSize = 13
 aba3.BorderSizePixel = 0
 
--- ===== CONTEUDO ABA 1 =====
-local content1 = Instance.new("Frame")
-content1.Parent = mainFrame
-content1.Size = UDim2.new(1, 0, 1, -80)
-content1.Position = UDim2.new(0, 0, 0, 80)
-content1.BackgroundTransparency = 1
+-- CONTEUDO ABA 1
+local c1 = Instance.new("Frame", main)
+c1.Size = UDim2.new(1, 0, 1, -80)
+c1.Position = UDim2.new(0, 0, 0, 80)
+c1.BackgroundTransparency = 1
 
--- ID Label
-local idLabel = Instance.new("TextLabel")
-idLabel.Parent = content1
+local idLabel = Instance.new("TextLabel", c1)
 idLabel.Size = UDim2.new(0.8, 0, 0, 20)
 idLabel.Position = UDim2.new(0.1, 0, 0.02, 0)
 idLabel.Text = "MeshId:"
@@ -360,8 +267,7 @@ idLabel.Font = Enum.Font.GothamBold
 idLabel.TextSize = 13
 idLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local idInput = Instance.new("TextBox")
-idInput.Parent = content1
+local idInput = Instance.new("TextBox", c1)
 idInput.Size = UDim2.new(0.8, 0, 0, 35)
 idInput.Position = UDim2.new(0.1, 0, 0.08, 0)
 idInput.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
@@ -371,271 +277,213 @@ idInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 idInput.Font = Enum.Font.Gotham
 idInput.TextSize = 14
 idInput.ClearTextOnFocus = false
+local idc = Instance.new("UICorner", idInput)
+idc.CornerRadius = UDim.new(0, 8)
 
-local idCorner = Instance.new("UICorner")
-idCorner.Parent = idInput
-idCorner.CornerRadius = UDim.new(0, 8)
+local btnMesh = Instance.new("TextButton", c1)
+btnMesh.Size = UDim2.new(0.8, 0, 0, 40)
+btnMesh.Position = UDim2.new(0.1, 0, 0.18, 0)
+btnMesh.Text = "APLICAR MESH"
+btnMesh.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnMesh.BackgroundColor3 = Color3.fromRGB(70, 50, 150)
+btnMesh.Font = Enum.Font.GothamBold
+btnMesh.TextSize = 15
+local bmc = Instance.new("UICorner", btnMesh)
+bmc.CornerRadius = UDim.new(0, 8)
 
-local aplicarMeshBtn = Instance.new("TextButton")
-aplicarMeshBtn.Parent = content1
-aplicarMeshBtn.Size = UDim2.new(0.8, 0, 0, 40)
-aplicarMeshBtn.Position = UDim2.new(0.1, 0, 0.18, 0)
-aplicarMeshBtn.Text = "APLICAR MESH"
-aplicarMeshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-aplicarMeshBtn.BackgroundColor3 = Color3.fromRGB(70, 50, 150)
-aplicarMeshBtn.Font = Enum.Font.GothamBold
-aplicarMeshBtn.TextSize = 15
+local btnNome = Instance.new("TextButton", c1)
+btnNome.Size = UDim2.new(0.38, 0, 0, 35)
+btnNome.Position = UDim2.new(0.06, 0, 0.30, 0)
+btnNome.Text = "Nome: OFF"
+btnNome.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnNome.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+btnNome.Font = Enum.Font.GothamBold
+btnNome.TextSize = 12
+local bnc = Instance.new("UICorner", btnNome)
+bnc.CornerRadius = UDim.new(0, 8)
 
-local btnCorner1 = Instance.new("UICorner")
-btnCorner1.Parent = aplicarMeshBtn
-btnCorner1.CornerRadius = UDim.new(0, 8)
+local btnRenomear = Instance.new("TextButton", c1)
+btnRenomear.Size = UDim2.new(0.38, 0, 0, 35)
+btnRenomear.Position = UDim2.new(0.56, 0, 0.30, 0)
+btnRenomear.Text = "Renomear"
+btnRenomear.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnRenomear.BackgroundColor3 = Color3.fromRGB(50, 70, 50)
+btnRenomear.Font = Enum.Font.GothamBold
+btnRenomear.TextSize = 12
+local brc = Instance.new("UICorner", btnRenomear)
+brc.CornerRadius = UDim.new(0, 8)
 
-local bolaNovaBtn = Instance.new("TextButton")
-bolaNovaBtn.Parent = content1
-bolaNovaBtn.Size = UDim2.new(0.38, 0, 0, 35)
-bolaNovaBtn.Position = UDim2.new(0.06, 0, 0.30, 0)
-bolaNovaBtn.Text = "Nome: OFF"
-bolaNovaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-bolaNovaBtn.Font = Enum.Font.GothamBold
-bolaNovaBtn.TextSize = 12
+local btnTex = Instance.new("TextButton", c1)
+btnTex.Size = UDim2.new(0.38, 0, 0, 35)
+btnTex.Position = UDim2.new(0.06, 0, 0.40, 0)
+btnTex.Text = "Remover Tex"
+btnTex.TextColor3 = Color3.fromRGB(255, 200, 200)
+btnTex.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
+btnTex.Font = Enum.Font.GothamBold
+btnTex.TextSize = 12
+local btc = Instance.new("UICorner", btnTex)
+btc.CornerRadius = UDim.new(0, 8)
 
-local btnCorner2 = Instance.new("UICorner")
-btnCorner2.Parent = bolaNovaBtn
-btnCorner2.CornerRadius = UDim.new(0, 8)
+local btnReset = Instance.new("TextButton", c1)
+btnReset.Size = UDim2.new(0.38, 0, 0, 35)
+btnReset.Position = UDim2.new(0.56, 0, 0.40, 0)
+btnReset.Text = "Resetar"
+btnReset.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnReset.BackgroundColor3 = Color3.fromRGB(40, 60, 80)
+btnReset.Font = Enum.Font.GothamBold
+btnReset.TextSize = 12
+local brc2 = Instance.new("UICorner", btnReset)
+brc2.CornerRadius = UDim.new(0, 8)
 
-local renomearBtn = Instance.new("TextButton")
-renomearBtn.Parent = content1
-renomearBtn.Size = UDim2.new(0.38, 0, 0, 35)
-renomearBtn.Position = UDim2.new(0.56, 0, 0.30, 0)
-renomearBtn.Text = "Renomear"
-renomearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-renomearBtn.BackgroundColor3 = Color3.fromRGB(50, 70, 50)
-renomearBtn.Font = Enum.Font.GothamBold
-renomearBtn.TextSize = 12
+local status = Instance.new("TextLabel", c1)
+status.Size = UDim2.new(0.9, 0, 0, 40)
+status.Position = UDim2.new(0.05, 0, 0.48, 0)
+status.Text = "Pronto"
+status.TextColor3 = Color3.fromRGB(100, 255, 100)
+status.BackgroundTransparency = 1
+status.Font = Enum.Font.Gotham
+status.TextSize = 12
+status.TextWrapped = true
 
-local btnCorner3 = Instance.new("UICorner")
-btnCorner3.Parent = renomearBtn
-btnCorner3.CornerRadius = UDim.new(0, 8)
+local btnBuscar = Instance.new("TextButton", c1)
+btnBuscar.Size = UDim2.new(0.8, 0, 0, 30)
+btnBuscar.Position = UDim2.new(0.1, 0, 0.60, 0)
+btnBuscar.Text = "BUSCAR BOLA TPS"
+btnBuscar.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnBuscar.BackgroundColor3 = Color3.fromRGB(80, 40, 120)
+btnBuscar.Font = Enum.Font.GothamBold
+btnBuscar.TextSize = 12
+local bbc = Instance.new("UICorner", btnBuscar)
+bbc.CornerRadius = UDim.new(0, 8)
 
-local removerTexBtn = Instance.new("TextButton")
-removerTexBtn.Parent = content1
-removerTexBtn.Size = UDim2.new(0.38, 0, 0, 35)
-removerTexBtn.Position = UDim2.new(0.06, 0, 0.40, 0)
-removerTexBtn.Text = "Remover Tex"
-removerTexBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
-removerTexBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
-removerTexBtn.Font = Enum.Font.GothamBold
-removerTexBtn.TextSize = 12
+-- CONTEUDO ABA 2
+local c2 = Instance.new("Frame", main)
+c2.Size = UDim2.new(1, 0, 1, -80)
+c2.Position = UDim2.new(0, 0, 0, 80)
+c2.BackgroundTransparency = 1
+c2.Visible = false
 
-local btnCorner4 = Instance.new("UICorner")
-btnCorner4.Parent = removerTexBtn
-btnCorner4.CornerRadius = UDim.new(0, 8)
+local lblReach = Instance.new("TextLabel", c2)
+lblReach.Size = UDim2.new(0.8, 0, 0, 30)
+lblReach.Position = UDim2.new(0.1, 0, 0.05, 0)
+lblReach.Text = "Reach: 1.0x"
+lblReach.TextColor3 = Color3.fromRGB(255, 255, 255)
+lblReach.BackgroundTransparency = 1
+lblReach.Font = Enum.Font.GothamBold
+lblReach.TextSize = 18
 
-local resetarBtn = Instance.new("TextButton")
-resetarBtn.Parent = content1
-resetarBtn.Size = UDim2.new(0.38, 0, 0, 35)
-resetarBtn.Position = UDim2.new(0.56, 0, 0.40, 0)
-resetarBtn.Text = "Resetar"
-resetarBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-resetarBtn.BackgroundColor3 = Color3.fromRGB(40, 60, 80)
-resetarBtn.Font = Enum.Font.GothamBold
-resetarBtn.TextSize = 12
+local lblSub = Instance.new("TextLabel", c2)
+lblSub.Size = UDim2.new(0.8, 0, 0, 20)
+lblSub.Position = UDim2.new(0.1, 0, 0.14, 0)
+lblSub.Text = "Alcance do personagem"
+lblSub.TextColor3 = Color3.fromRGB(180, 180, 200)
+lblSub.BackgroundTransparency = 1
+lblSub.Font = Enum.Font.Gotham
+lblSub.TextSize = 12
 
-local btnCorner5 = Instance.new("UICorner")
-btnCorner5.Parent = resetarBtn
-btnCorner5.CornerRadius = UDim.new(0, 8)
+local btnMenos = Instance.new("TextButton", c2)
+btnMenos.Size = UDim2.new(0.12, 0, 0, 35)
+btnMenos.Position = UDim2.new(0.1, 0, 0.30, 0)
+btnMenos.Text = "-"
+btnMenos.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnMenos.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+btnMenos.Font = Enum.Font.GothamBold
+btnMenos.TextSize = 20
+local bmc2 = Instance.new("UICorner", btnMenos)
+bmc2.CornerRadius = UDim.new(0, 5)
 
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Parent = content1
-statusLabel.Size = UDim2.new(0.9, 0, 0, 40)
-statusLabel.Position = UDim2.new(0.05, 0, 0.48, 0)
-statusLabel.Text = "Pronto"
-statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Font = Enum.Font.Gotham
-statusLabel.TextSize = 12
-statusLabel.TextWrapped = true
+local btnMais = Instance.new("TextButton", c2)
+btnMais.Size = UDim2.new(0.12, 0, 0, 35)
+btnMais.Position = UDim2.new(0.78, 0, 0.30, 0)
+btnMais.Text = "+"
+btnMais.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnMais.BackgroundColor3 = Color3.fromRGB(40, 60, 40)
+btnMais.Font = Enum.Font.GothamBold
+btnMais.TextSize = 20
+local bmc3 = Instance.new("UICorner", btnMais)
+bmc3.CornerRadius = UDim.new(0, 5)
 
-local buscarBtn = Instance.new("TextButton")
-buscarBtn.Parent = content1
-buscarBtn.Size = UDim2.new(0.8, 0, 0, 30)
-buscarBtn.Position = UDim2.new(0.1, 0, 0.60, 0)
-buscarBtn.Text = "BUSCAR BOLA TPS"
-buscarBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-buscarBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 120)
-buscarBtn.Font = Enum.Font.GothamBold
-buscarBtn.TextSize = 12
+local lblValor = Instance.new("TextLabel", c2)
+lblValor.Size = UDim2.new(0.3, 0, 0, 35)
+lblValor.Position = UDim2.new(0.35, 0, 0.30, 0)
+lblValor.Text = "1.0"
+lblValor.TextColor3 = Color3.fromRGB(255, 255, 255)
+lblValor.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+lblValor.Font = Enum.Font.GothamBold
+lblValor.TextSize = 16
+local lvc = Instance.new("UICorner", lblValor)
+lvc.CornerRadius = UDim.new(0, 5)
 
-local btnCorner6 = Instance.new("UICorner")
-btnCorner6.Parent = buscarBtn
-btnCorner6.CornerRadius = UDim.new(0, 8)
+local lblStatusReach = Instance.new("TextLabel", c2)
+lblStatusReach.Size = UDim2.new(0.8, 0, 0, 30)
+lblStatusReach.Position = UDim2.new(0.1, 0, 0.42, 0)
+lblStatusReach.Text = "Reach aplicado ao personagem"
+lblStatusReach.TextColor3 = Color3.fromRGB(150, 255, 150)
+lblStatusReach.BackgroundTransparency = 1
+lblStatusReach.Font = Enum.Font.Gotham
+lblStatusReach.TextSize = 12
 
--- ===== CONTEUDO ABA 2 (REACH) =====
-local content2 = Instance.new("Frame")
-content2.Parent = mainFrame
-content2.Size = UDim2.new(1, 0, 1, -80)
-content2.Position = UDim2.new(0, 0, 0, 80)
-content2.BackgroundTransparency = 1
-content2.Visible = false
+-- CONTEUDO ABA 3
+local c3 = Instance.new("Frame", main)
+c3.Size = UDim2.new(1, 0, 1, -80)
+c3.Position = UDim2.new(0, 0, 0, 80)
+c3.BackgroundTransparency = 1
+c3.Visible = false
 
-local reachLabel = Instance.new("TextLabel")
-reachLabel.Parent = content2
-reachLabel.Size = UDim2.new(0.8, 0, 0, 30)
-reachLabel.Position = UDim2.new(0.1, 0, 0.05, 0)
-reachLabel.Text = "Reach: 1.0x"
-reachLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-reachLabel.BackgroundTransparency = 1
-reachLabel.Font = Enum.Font.GothamBold
-reachLabel.TextSize = 18
+local lblEsp = Instance.new("TextLabel", c3)
+lblEsp.Size = UDim2.new(0.8, 0, 0, 25)
+lblEsp.Position = UDim2.new(0.1, 0, 0.02, 0)
+lblEsp.Text = "ESP - Destaque da Bola"
+lblEsp.TextColor3 = Color3.fromRGB(255, 255, 255)
+lblEsp.BackgroundTransparency = 1
+lblEsp.Font = Enum.Font.GothamBold
+lblEsp.TextSize = 15
+lblEsp.TextXAlignment = Enum.TextXAlignment.Left
 
-local reachSub = Instance.new("TextLabel")
-reachSub.Parent = content2
-reachSub.Size = UDim2.new(0.8, 0, 0, 20)
-reachSub.Position = UDim2.new(0.1, 0, 0.14, 0)
-reachSub.Text = "Alcance do personagem"
-reachSub.TextColor3 = Color3.fromRGB(180, 180, 200)
-reachSub.BackgroundTransparency = 1
-reachSub.Font = Enum.Font.Gotham
-reachSub.TextSize = 12
+local btnEsp = Instance.new("TextButton", c3)
+btnEsp.Size = UDim2.new(0.8, 0, 0, 40)
+btnEsp.Position = UDim2.new(0.1, 0, 0.12, 0)
+btnEsp.Text = "ESP: DESATIVADO"
+btnEsp.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnEsp.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+btnEsp.Font = Enum.Font.GothamBold
+btnEsp.TextSize = 14
+local bec = Instance.new("UICorner", btnEsp)
+bec.CornerRadius = UDim.new(0, 8)
 
-local reachSlider = Instance.new("Frame")
-reachSlider.Parent = content2
-reachSlider.Size = UDim2.new(0.7, 0, 0, 6)
-reachSlider.Position = UDim2.new(0.15, 0, 0.24, 0)
-reachSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-reachSlider.BorderSizePixel = 0
+local lblHitbox = Instance.new("TextLabel", c3)
+lblHitbox.Size = UDim2.new(0.8, 0, 0, 25)
+lblHitbox.Position = UDim2.new(0.1, 0, 0.28, 0)
+lblHitbox.Text = "Hitbox - Visualizar Tamanho"
+lblHitbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+lblHitbox.BackgroundTransparency = 1
+lblHitbox.Font = Enum.Font.GothamBold
+lblHitbox.TextSize = 15
+lblHitbox.TextXAlignment = Enum.TextXAlignment.Left
 
-local reachSliderCorner = Instance.new("UICorner")
-reachSliderCorner.Parent = reachSlider
-reachSliderCorner.CornerRadius = UDim.new(1, 0)
+local btnHitbox = Instance.new("TextButton", c3)
+btnHitbox.Size = UDim2.new(0.8, 0, 0, 40)
+btnHitbox.Position = UDim2.new(0.1, 0, 0.38, 0)
+btnHitbox.Text = "HITBOX: DESATIVADO"
+btnHitbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnHitbox.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+btnHitbox.Font = Enum.Font.GothamBold
+btnHitbox.TextSize = 14
+local bhc = Instance.new("UICorner", btnHitbox)
+bhc.CornerRadius = UDim.new(0, 8)
 
-local reachFill = Instance.new("Frame")
-reachFill.Parent = reachSlider
-reachFill.Size = UDim2.new(0.5, 0, 1, 0)
-reachFill.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-reachFill.BorderSizePixel = 0
+local lblInfo = Instance.new("TextLabel", c3)
+lblInfo.Size = UDim2.new(0.8, 0, 0, 40)
+lblInfo.Position = UDim2.new(0.1, 0, 0.55, 0)
+lblInfo.Text = "Hitbox mostra o tamanho real da bola\ne a area de colisao"
+lblInfo.TextColor3 = Color3.fromRGB(180, 180, 200)
+lblInfo.BackgroundTransparency = 1
+lblInfo.Font = Enum.Font.Gotham
+lblInfo.TextSize = 12
+lblInfo.TextXAlignment = Enum.TextXAlignment.Left
 
-local reachFillCorner = Instance.new("UICorner")
-reachFillCorner.Parent = reachFill
-reachFillCorner.CornerRadius = UDim.new(1, 0)
-
-local reachMenos = Instance.new("TextButton")
-reachMenos.Parent = content2
-reachMenos.Size = UDim2.new(0.12, 0, 0, 35)
-reachMenos.Position = UDim2.new(0.1, 0, 0.30, 0)
-reachMenos.Text = "-"
-reachMenos.TextColor3 = Color3.fromRGB(255, 255, 255)
-reachMenos.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
-reachMenos.Font = Enum.Font.GothamBold
-reachMenos.TextSize = 20
-
-local reachMais = Instance.new("TextButton")
-reachMais.Parent = content2
-reachMais.Size = UDim2.new(0.12, 0, 0, 35)
-reachMais.Position = UDim2.new(0.78, 0, 0.30, 0)
-reachMais.Text = "+"
-reachMais.TextColor3 = Color3.fromRGB(255, 255, 255)
-reachMais.BackgroundColor3 = Color3.fromRGB(40, 60, 40)
-reachMais.Font = Enum.Font.GothamBold
-reachMais.TextSize = 20
-
-local reachValor = Instance.new("TextLabel")
-reachValor.Parent = content2
-reachValor.Size = UDim2.new(0.3, 0, 0, 35)
-reachValor.Position = UDim2.new(0.35, 0, 0.30, 0)
-reachValor.Text = "1.0"
-reachValor.TextColor3 = Color3.fromRGB(255, 255, 255)
-reachValor.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-reachValor.Font = Enum.Font.GothamBold
-reachValor.TextSize = 16
-
-local reachCorner = Instance.new("UICorner")
-reachCorner.Parent = reachValor
-reachCorner.CornerRadius = UDim.new(0, 5)
-
-local reachStatus = Instance.new("TextLabel")
-reachStatus.Parent = content2
-reachStatus.Size = UDim2.new(0.8, 0, 0, 30)
-reachStatus.Position = UDim2.new(0.1, 0, 0.42, 0)
-reachStatus.Text = "Reach aplicado ao personagem"
-reachStatus.TextColor3 = Color3.fromRGB(150, 255, 150)
-reachStatus.BackgroundTransparency = 1
-reachStatus.Font = Enum.Font.Gotham
-reachStatus.TextSize = 12
-
--- ===== CONTEUDO ABA 3 (ESP/HITBOX) =====
-local content3 = Instance.new("Frame")
-content3.Parent = mainFrame
-content3.Size = UDim2.new(1, 0, 1, -80)
-content3.Position = UDim2.new(0, 0, 0, 80)
-content3.BackgroundTransparency = 1
-content3.Visible = false
-
-local espLabel = Instance.new("TextLabel")
-espLabel.Parent = content3
-espLabel.Size = UDim2.new(0.8, 0, 0, 25)
-espLabel.Position = UDim2.new(0.1, 0, 0.02, 0)
-espLabel.Text = "ESP - Destaque da Bola"
-espLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-espLabel.BackgroundTransparency = 1
-espLabel.Font = Enum.Font.GothamBold
-espLabel.TextSize = 15
-espLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local espBtn = Instance.new("TextButton")
-espBtn.Parent = content3
-espBtn.Size = UDim2.new(0.8, 0, 0, 40)
-espBtn.Position = UDim2.new(0.1, 0, 0.12, 0)
-espBtn.Text = "ESP: DESATIVADO"
-espBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-espBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-espBtn.Font = Enum.Font.GothamBold
-espBtn.TextSize = 14
-
-local espCorner = Instance.new("UICorner")
-espCorner.Parent = espBtn
-espCorner.CornerRadius = UDim.new(0, 8)
-
-local hitboxLabel = Instance.new("TextLabel")
-hitboxLabel.Parent = content3
-hitboxLabel.Size = UDim2.new(0.8, 0, 0, 25)
-hitboxLabel.Position = UDim2.new(0.1, 0, 0.28, 0)
-hitboxLabel.Text = "Hitbox - Visualizar Tamanho"
-hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-hitboxLabel.BackgroundTransparency = 1
-hitboxLabel.Font = Enum.Font.GothamBold
-hitboxLabel.TextSize = 15
-hitboxLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local hitboxBtn = Instance.new("TextButton")
-hitboxBtn.Parent = content3
-hitboxBtn.Size = UDim2.new(0.8, 0, 0, 40)
-hitboxBtn.Position = UDim2.new(0.1, 0, 0.38, 0)
-hitboxBtn.Text = "HITBOX: DESATIVADO"
-hitboxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-hitboxBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-hitboxBtn.Font = Enum.Font.GothamBold
-hitboxBtn.TextSize = 14
-
-local hitboxCorner = Instance.new("UICorner")
-hitboxCorner.Parent = hitboxBtn
-hitboxCorner.CornerRadius = UDim.new(0, 8)
-
-local infoLabel = Instance.new("TextLabel")
-infoLabel.Parent = content3
-infoLabel.Size = UDim2.new(0.8, 0, 0, 40)
-infoLabel.Position = UDim2.new(0.1, 0, 0.55, 0)
-infoLabel.Text = "Hitbox mostra o tamanho real\nda bola e a area de colisao"
-infoLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
-infoLabel.BackgroundTransparency = 1
-infoLabel.Font = Enum.Font.Gotham
-infoLabel.TextSize = 12
-infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-
--- ===== BOTAO FECHAR =====
-local closeBtn = Instance.new("TextButton")
-closeBtn.Parent = mainFrame
+-- FECHAR
+local closeBtn = Instance.new("TextButton", main)
 closeBtn.Size = UDim2.new(0, 35, 0, 35)
 closeBtn.Position = UDim2.new(1, -42, 0, 8)
 closeBtn.Text = "X"
@@ -645,26 +493,22 @@ closeBtn.BackgroundTransparency = 0.5
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 20
 closeBtn.BorderSizePixel = 0
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.Parent = closeBtn
-closeCorner.CornerRadius = UDim.new(1, 0)
+local ccc = Instance.new("UICorner", closeBtn)
+ccc.CornerRadius = UDim.new(1, 0)
 
 -- ============================================
 -- ====== FUNCOES DAS ABAS ======
 -- ============================================
-
-local function switchAba(aba)
-    content1.Visible = (aba == 1)
-    content2.Visible = (aba == 2)
-    content3.Visible = (aba == 3)
-    
-    aba1.BackgroundColor3 = (aba == 1) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
-    aba1.TextColor3 = (aba == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
-    aba2.BackgroundColor3 = (aba == 2) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
-    aba2.TextColor3 = (aba == 2) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
-    aba3.BackgroundColor3 = (aba == 3) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
-    aba3.TextColor3 = (aba == 3) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+local function switchAba(n)
+    c1.Visible = (n == 1)
+    c2.Visible = (n == 2)
+    c3.Visible = (n == 3)
+    aba1.BackgroundColor3 = (n == 1) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
+    aba1.TextColor3 = (n == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+    aba2.BackgroundColor3 = (n == 2) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
+    aba2.TextColor3 = (n == 2) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+    aba3.BackgroundColor3 = (n == 3) and Color3.fromRGB(60, 50, 100) or Color3.fromRGB(40, 40, 60)
+    aba3.TextColor3 = (n == 3) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
 end
 
 aba1.MouseButton1Click:Connect(function() switchAba(1) end)
@@ -675,88 +519,183 @@ aba3.MouseButton1Click:Connect(function() switchAba(3) end)
 -- ====== ACOES DOS BOTOES ======
 -- ============================================
 
--- ABA 1 - Bola
-aplicarMeshBtn.MouseButton1Click:Connect(function()
-    local meshId = idInput.Text
-    if meshId and meshId ~= "" then
-        if trocarMeshBola(meshId) then
-            statusLabel.Text = "Mesh aplicada com sucesso!"
-            statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+-- ABA 1
+btnMesh.MouseButton1Click:Connect(function()
+    local id = idInput.Text
+    if id and id ~= "" then
+        if trocarMesh(id) then
+            status.Text = "Mesh aplicada com sucesso!"
+            status.TextColor3 = Color3.fromRGB(100, 255, 100)
         else
-            statusLabel.Text = "Bola TPS nao encontrada!"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            status.Text = "Bola TPS nao encontrada!"
+            status.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
     else
-        statusLabel.Text = "Digite um ID valido!"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
+        status.Text = "Digite um ID valido!"
+        status.TextColor3 = Color3.fromRGB(255, 200, 50)
     end
 end)
 
-local bolaAtiva = false
-bolaNovaBtn.MouseButton1Click:Connect(function()
-    bolaAtiva = not bolaAtiva
-    if bolaAtiva then
-        bolaNovaBtn.Text = "Nome: ON"
-        bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+local nomeAtivo = false
+btnNome.MouseButton1Click:Connect(function()
+    nomeAtivo = not nomeAtivo
+    if nomeAtivo then
+        btnNome.Text = "Nome: ON"
+        btnNome.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
         renameToNerdttk()
-        statusLabel.Text = "Nome alterado para nerdttk"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        status.Text = "Nome alterado para nerdttk"
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
     else
-        bolaNovaBtn.Text = "Nome: OFF"
-        bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        btnNome.Text = "Nome: OFF"
+        btnNome.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         resetBallName()
-        statusLabel.Text = "Nome resetado para TPS"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        status.Text = "Nome resetado para TPS"
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
     end
 end)
 
-renomearBtn.MouseButton1Click:Connect(function()
+btnRenomear.MouseButton1Click:Connect(function()
     if renameToNerdttk() then
-        statusLabel.Text = "Renomeado para nerdttk"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-        bolaAtiva = true
-        bolaNovaBtn.Text = "Nome: ON"
-        bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+        status.Text = "Renomeado para nerdttk"
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
+        nomeAtivo = true
+        btnNome.Text = "Nome: ON"
+        btnNome.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
     else
-        statusLabel.Text = "Bola TPS nao encontrada!"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        status.Text = "Bola TPS nao encontrada!"
+        status.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
-removerTexBtn.MouseButton1Click:Connect(function()
+btnTex.MouseButton1Click:Connect(function()
     if removerTexturas() then
-        statusLabel.Text = "Texturas removidas!"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        status.Text = "Texturas removidas!"
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
     else
-        statusLabel.Text = "Bola TPS nao encontrada!"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        status.Text = "Bola TPS nao encontrada!"
+        status.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
-resetarBtn.MouseButton1Click:Connect(function()
+btnReset.MouseButton1Click:Connect(function()
     if resetBallName() then
-        statusLabel.Text = "Nome resetado para TPS"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-        bolaAtiva = false
-        bolaNovaBtn.Text = "Nome: OFF"
-        bolaNovaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        status.Text = "Nome resetado para TPS"
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
+        nomeAtivo = false
+        btnNome.Text = "Nome: OFF"
+        btnNome.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     else
-        statusLabel.Text = "Bola TPS nao encontrada!"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        status.Text = "Bola TPS nao encontrada!"
+        status.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
-buscarBtn.MouseButton1Click:Connect(function()
+btnBuscar.MouseButton1Click:Connect(function()
     local ball = findBall()
     if ball then
-        statusLabel.Text = "Bola TPS encontrada: " .. ball.Name
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        status.Text = "Bola TPS encontrada: " .. ball.Name
+        status.TextColor3 = Color3.fromRGB(100, 255, 100)
     else
-        statusLabel.Text = "Bola TPS nao encontrada!"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        status.Text = "Bola TPS nao encontrada!"
+        status.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
 
 -- ABA 2 - Reach
-local function atualizarReachUI()
-    reachLabel
+local function atualizarReach()
+    lblReach.Text = "Reach: " .. string.format("%.1f", reachMultiplier) .. "x"
+    lblValor.Text = string.format("%.1f", reachMultiplier)
+    local val = 10 + (reachMultiplier - 0.5) * 20
+    local pct = math.clamp((reachMultiplier - 0.5) / 3.5, 0, 1)
+end
+
+btnMenos.MouseButton1Click:Connect(function()
+    if reachMultiplier > 0.5 then
+        reachMultiplier = reachMultiplier - 0.1
+        local valorFinal = math.floor(reachMultiplier * 10) / 10
+        if aplicarReach(valorFinal) then
+            lblStatusReach.Text = "Reach ajustado para: " .. string.format("%.1f", valorFinal)
+            lblStatusReach.TextColor3 = Color3.fromRGB(150, 255, 150)
+        else
+            lblStatusReach.Text = "Erro ao aplicar Reach!"
+            lblStatusReach.TextColor3 = Color3.fromRGB(255, 150, 150)
+        end
+        atualizarReach()
+    end
+end)
+
+btnMais.MouseButton1Click:Connect(function()
+    if reachMultiplier < 4.0 then
+        reachMultiplier = reachMultiplier + 0.1
+        local valorFinal = math.floor(reachMultiplier * 10) / 10
+        if aplicarReach(valorFinal) then
+            lblStatusReach.Text = "Reach ajustado para: " .. string.format("%.1f", valorFinal)
+            lblStatusReach.TextColor3 = Color3.fromRGB(150, 255, 150)
+        else
+            lblStatusReach.Text = "Erro ao aplicar Reach!"
+            lblStatusReach.TextColor3 = Color3.fromRGB(255, 150, 150)
+        end
+        atualizarReach()
+    end
+end)
+
+-- ABA 3 - ESP/Hitbox
+btnEsp.MouseButton1Click:Connect(function()
+    toggleESP()
+    if espEnabled then
+        btnEsp.Text = "ESP: ATIVADO"
+        btnEsp.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+    else
+        btnEsp.Text = "ESP: DESATIVADO"
+        btnEsp.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    end
+end)
+
+btnHitbox.MouseButton1Click:Connect(function()
+    if hitboxVisible then
+        removerHitbox()
+        btnHitbox.Text = "HITBOX: DESATIVADO"
+        btnHitbox.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    else
+        criarHitbox()
+        btnHitbox.Text = "HITBOX: ATIVADO"
+        btnHitbox.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+    end
+end)
+
+-- FECHAR
+closeBtn.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+    bg.Visible = main.Visible
+end)
+
+-- ATALHO B
+local uis = game:GetService("UserInputService")
+uis.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.B then
+        main.Visible = not main.Visible
+        bg.Visible = main.Visible
+    end
+end)
+
+-- ATUALIZAR HITBOX
+game:GetService("RunService").Heartbeat:Connect(function()
+    atualizarHitbox()
+end)
+
+-- ============================================
+-- ====== INICIALIZACAO ======
+-- ============================================
+print("TCS - Alterador de Ball carregado!")
+print("Pressione B para abrir/fechar")
+
+local ball = findBall()
+if ball then
+    print("Bola TPS encontrada: " .. ball.Name)
+    status.Text = "Bola TPS: " .. ball.Name
+else
+    print("Bola TPS nao encontrada!")
+    status.Text = "Bola TPS nao encontrada!"
+    status.TextColor3 = Color3.fromRGB(255, 200, 50)
+end
