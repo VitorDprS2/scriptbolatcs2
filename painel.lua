@@ -1,5 +1,5 @@
 -- Vitorxyz - Alterador de ball
--- UI Preta e Branca + Bola Lisa + Cores + Tamanho + Keybind
+-- Tamanho VISUAL apenas (nao altera a fisica da bola)
 -- Criado por: Vitorxyz
 
 local player = game.Players.LocalPlayer
@@ -16,7 +16,6 @@ local corOriginal = nil
 local corSelecionada = Color3.fromRGB(255, 255, 255)
 local minimizado = false
 local tamanhoMultiplier = 1.0
-local tamanhoOriginal = nil
 
 -- ===== FUNCAO PARA ENCONTRAR A BOLA =====
 local function findBall()
@@ -57,45 +56,38 @@ local function findBall()
     return nil
 end
 
--- ===== FUNCAO PARA ALTERAR TAMANHO DA BOLA =====
-local function aplicarTamanho()
+-- ===== FUNCAO PARA ALTERAR TAMANHO VISUAL (SO MESH) =====
+local function aplicarTamanhoVisual()
     local ball = findBall()
     if not ball then return false end
     
-    if not tamanhoOriginal then
-        tamanhoOriginal = ball.Size
-    end
-    
-    -- Calcula novo tamanho
-    local novoTamanho = Vector3.new(
-        tamanhoOriginal.X * tamanhoMultiplier,
-        tamanhoOriginal.Y * tamanhoMultiplier,
-        tamanhoOriginal.Z * tamanhoMultiplier
-    )
-    
-    -- Aplica o tamanho
-    pcall(function()
-        ball.Size = novoTamanho
-    end)
-    
-    -- Se tiver Mesh, ajusta a escala também
+    -- So mexe na SpecialMesh, NAO no Size da bola
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
     if mesh then
         pcall(function()
             mesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
         end)
+    else
+        -- Se nao tiver mesh, cria uma invisivel so pra escalar visualmente
+        print("Bola nao tem SpecialMesh, criando uma para escala visual...")
+        local newMesh = Instance.new("SpecialMesh")
+        newMesh.MeshType = Enum.MeshType.Sphere
+        newMesh.Parent = ball
+        newMesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
     end
     
+    print("Tamanho visual aplicado: " .. tamanhoMultiplier .. "x")
     return true
 end
 
--- ===== FUNCAO PARA RESETAR TAMANHO =====
-local function resetarTamanho()
+-- ===== FUNCAO PARA RESETAR TAMANHO VISUAL =====
+local function resetarTamanhoVisual()
     local ball = findBall()
     if not ball then return false end
-    if tamanhoOriginal then
+    local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
+    if mesh then
         pcall(function()
-            ball.Size = tamanhoOriginal
+            mesh.Scale = Vector3.new(1, 1, 1)
         end)
     end
     tamanhoMultiplier = 1.0
@@ -175,11 +167,7 @@ end
 local function deixarBolaLisa()
     local ball = findBall()
     if not ball then return false end
-    
-    if not corOriginal then
-        corOriginal = ball.Color
-    end
-    
+    if not corOriginal then corOriginal = ball.Color end
     for _, child in ipairs(ball:GetChildren()) do
         if child:IsA("Texture") or child:IsA("Decal") then
             child:Destroy()
@@ -190,14 +178,11 @@ local function deixarBolaLisa()
             part:Destroy()
         end
     end
-    
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
     if mesh then mesh:Destroy() end
-    
     ball.Material = Enum.Material.SmoothPlastic
     ball.Color = corSelecionada
     ball.Reflectance = 0.2
-    
     return true
 end
 
@@ -240,7 +225,6 @@ local mainStroke = Instance.new("UIStroke", main)
 mainStroke.Color = Color3.fromRGB(255, 255, 255)
 mainStroke.Thickness = 2
 
--- TITULO
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, 40)
 title.Position = UDim2.new(0, 0, 0, 0)
@@ -250,7 +234,6 @@ title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 
--- BOTAO MINIMIZAR
 local minBtn = Instance.new("TextButton", main)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -72, 0, 5)
@@ -265,7 +248,6 @@ local sm = Instance.new("UIStroke", minBtn)
 sm.Color = Color3.fromRGB(255, 255, 255)
 sm.Thickness = 1
 
--- BOTAO FECHAR
 local closeBtn = Instance.new("TextButton", main)
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -38, 0, 5)
@@ -280,7 +262,6 @@ local sc = Instance.new("UIStroke", closeBtn)
 sc.Color = Color3.fromRGB(255, 255, 255)
 sc.Thickness = 1
 
--- ===== CONTAINER DE CONTEUDO =====
 local conteudo = Instance.new("Frame", main)
 conteudo.Size = UDim2.new(1, 0, 1, -40)
 conteudo.Position = UDim2.new(0, 0, 0, 40)
@@ -326,7 +307,6 @@ corLabel.BackgroundTransparency = 1
 corLabel.Font = Enum.Font.GothamBold
 corLabel.TextSize = 11
 
--- BOTOES DE COR
 local cores = {
     {nome = "Branco", cor = Color3.fromRGB(255, 255, 255)},
     {nome = "Preto", cor = Color3.fromRGB(0, 0, 0)},
@@ -361,7 +341,6 @@ for i, c in ipairs(cores) do
     local stroke = Instance.new("UIStroke", btnCor)
     stroke.Color = Color3.fromRGB(255, 255, 255)
     stroke.Thickness = 2
-    
     btnCor.MouseButton1Click:Connect(function()
         corSelecionada = c.cor
         if bolaLisaAtiva then
@@ -385,11 +364,11 @@ for i, c in ipairs(cores) do
     end)
 end
 
--- ===== SECAO TAMANHO DA BOLA =====
+-- TAMANHO
 local sizeLabel = Instance.new("TextLabel", conteudo)
 sizeLabel.Size = UDim2.new(0.85, 0, 0, 18)
 sizeLabel.Position = UDim2.new(0.075, 0, 0.36, 0)
-sizeLabel.Text = "TAMANHO DA BOLA:"
+sizeLabel.Text = "TAMANHO VISUAL DA BOLA:"
 sizeLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
 sizeLabel.BackgroundTransparency = 1
 sizeLabel.Font = Enum.Font.GothamBold
@@ -437,11 +416,10 @@ local sLbl = Instance.new("UIStroke", lblTamanho)
 sLbl.Color = Color3.fromRGB(80, 80, 80)
 sLbl.Thickness = 1
 
--- BOTAO RESETAR TAMANHO
 local btnResetarTamanho = Instance.new("TextButton", conteudo)
 btnResetarTamanho.Size = UDim2.new(0.85, 0, 0, 25)
 btnResetarTamanho.Position = UDim2.new(0.075, 0, 0.48, 0)
-btnResetarTamanho.Text = "RESETAR TAMANHO"
+btnResetarTamanho.Text = "RESETAR TAMANHO VISUAL"
 btnResetarTamanho.TextColor3 = Color3.fromRGB(255, 200, 200)
 btnResetarTamanho.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 btnResetarTamanho.Font = Enum.Font.GothamBold
@@ -512,7 +490,7 @@ local s6 = Instance.new("UIStroke", btnResetarMesh)
 s6.Color = Color3.fromRGB(80, 80, 80)
 s6.Thickness = 1
 
--- ===== CAMPOS DE INPUT =====
+-- INPUTS
 local textureInput = Instance.new("TextBox", conteudo)
 textureInput.Size = UDim2.new(0.85, 0, 0, 28)
 textureInput.Position = UDim2.new(0.075, 0, 0.54, 0)
@@ -570,27 +548,24 @@ btnBolaLisa.MouseButton1Click:Connect(function()
     end
 end)
 
--- TAMANHO +
 btnTamanhoMais.MouseButton1Click:Connect(function()
     if tamanhoMultiplier < 10.0 then
         tamanhoMultiplier = math.floor((tamanhoMultiplier + 0.5) * 10) / 10
         lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
-        aplicarTamanho()
+        aplicarTamanhoVisual()
     end
 end)
 
--- TAMANHO -
 btnTamanhoMenos.MouseButton1Click:Connect(function()
     if tamanhoMultiplier > 0.5 then
         tamanhoMultiplier = math.floor((tamanhoMultiplier - 0.5) * 10) / 10
         lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
-        aplicarTamanho()
+        aplicarTamanhoVisual()
     end
 end)
 
--- RESETAR TAMANHO
 btnResetarTamanho.MouseButton1Click:Connect(function()
-    resetarTamanho()
+    resetarTamanhoVisual()
     lblTamanho.Text = "1.0x"
 end)
 
@@ -648,10 +623,7 @@ closeBtn.MouseButton1Click:Connect(function()
     main.Visible = not main.Visible
 end)
 
--- ============================================
--- ====== KEYBIND (TECLA K) ======
--- ============================================
-
+-- KEYBIND K
 game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.K then
@@ -667,7 +639,6 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
     end
 end)
 
--- ===== INICIALIZACAO =====
 print("Vitorxyz - Alterador de ball carregado!")
-print("Pressione K para minimizar/abrir o hub")
-print("Bola Lisa + 10 cores + Tamanho disponiveis!")
+print("Tamanho VISUAL apenas (nao afeta fisica)")
+print("Pressione K para minimizar/abrir")
