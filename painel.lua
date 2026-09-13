@@ -1,14 +1,422 @@
--- Vitorxyz - Alterador de ball
--- Tamanho VISUAL apenas (nao altera a fisica da bola)
--- Criado por: Vitorxyz
+-- ============================================
+-- ====== VITORXYZ - ALTERADOR DE BALL ======
+-- Sistema de Key + HWID Lock + Painel Completo
+-- ============================================
 
 local player = game.Players.LocalPlayer
+
+-- ===== FUNCAO PARA PEGAR O HWID =====
+local function getHWID()
+    local hwid = nil
+    pcall(function()
+        hwid = game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    if not hwid then
+        pcall(function()
+            hwid = game:GetService("Players").LocalPlayer.UserId
+        end)
+    end
+    return tostring(hwid)
+end
+
+-- ===== LISTA DE 200 KEYS =====
+local keysValidas = {
+    ["A7K9-M2XP-4QW8-N3RT"] = "",
+    ["B4L8-N5VZ-7YT2-P9MK"] = "",
+    ["C2M6-Q8WD-3ER7-T5YU"] = "",
+    ["D9N3-R4TF-6YH8-U2IO"] = "",
+    ["E5P7-S6YH-8UJ9-I3OP"] = "",
+    ["F3Q8-T7UI-9OK0-P4AS"] = "",
+    ["G6R2-U8IO-0PL1-A5DF"] = "",
+    ["H8S4-V9OP-1AM2-S6DG"] = "",
+    ["I2T6-W0AQ-2BN3-D7FH"] = "",
+    ["J4U8-X1BR-3CO4-F8GJ"] = "",
+    ["K7V3-Y2CS-4DP5-G9HK"] = "",
+    ["L9W5-Z3DT-5EQ6-H0JL"] = "",
+    ["M3X7-A4EU-6FR7-J1KM"] = "",
+    ["N5Y9-B5FV-7GS8-K2LN"] = "",
+    ["O8Z2-C6GW-8HT9-L3MO"] = "",
+    ["P4A6-D7HX-9IU0-M4NP"] = "",
+    ["Q7B9-E8IY-0JV1-N5OQ"] = "",
+    ["R2C5-F9JZ-1KW2-O6PR"] = "",
+    ["S6D8-G0KA-2LX3-P7QS"] = "",
+    ["T9E3-H1LB-3MY4-Q8RT"] = "",
+    ["U5F7-I2MC-4NZ5-R9SU"] = "",
+    ["V8G2-J3ND-5OA6-S0TV"] = "",
+    ["W3H6-K4OE-6PB7-T1UW"] = "",
+    ["X7I9-L5PF-7QC8-U2VX"] = "",
+    ["Y2J4-M6QG-8RD9-V3WY"] = "",
+    ["Z6K8-N7RH-9SE0-W4XZ"] = "",
+    ["A9L3-O8SI-0TF1-X5YA"] = "",
+    ["B5M7-P9TJ-1UG2-Y6ZB"] = "",
+    ["C8N2-Q0UK-2VH3-Z7AC"] = "",
+    ["D4O6-R1VL-3WI4-A8BD"] = "",
+    ["E7P9-S2WM-4XJ5-B9CE"] = "",
+    ["F2Q5-T3XN-5YK6-C0DF"] = "",
+    ["G9R8-U4YO-6ZL7-D1EG"] = "",
+    ["H3S6-V5ZP-7AM8-E2FH"] = "",
+    ["I7T9-W6AQ-8BN9-F3GI"] = "",
+    ["J2U5-X7BR-9CO0-G4HJ"] = "",
+    ["K9V8-Y8CS-0DP1-H5IK"] = "",
+    ["L3W6-Z9DT-1EQ2-I6JL"] = "",
+    ["M7X9-A0EU-2FR3-J7KM"] = "",
+    ["N2Y5-B1FV-3GS4-K8LN"] = "",
+    ["O9Z8-C2GW-4HT5-L9MO"] = "",
+    ["P3A6-D3HX-5IU6-M0NP"] = "",
+    ["Q7B9-E4IY-6JV7-N1OQ"] = "",
+    ["R2C5-F5JZ-7KW8-O2PR"] = "",
+    ["S9D8-G6KA-8LX9-P3QS"] = "",
+    ["T3E6-H7LB-9MY0-Q4RT"] = "",
+    ["U7F9-I8MC-0NZ1-R5SU"] = "",
+    ["V2G5-J9ND-1OA2-S6TV"] = "",
+    ["W9H8-K0OE-2PB3-T7UW"] = "",
+    ["X3I6-L1PF-3QC4-U8VX"] = "",
+    ["Y7J9-M2QG-4RD5-V9WY"] = "",
+    ["Z2K5-N3RH-5SE6-W0XZ"] = "",
+    ["A9L8-O4SI-6TF7-X1YA"] = "",
+    ["B3M6-P5TJ-7UG8-Y2ZB"] = "",
+    ["C7N9-Q6UK-8VH9-Z3AC"] = "",
+    ["D2O5-R7VL-9WI0-A4BD"] = "",
+    ["E9P8-S8WM-0XJ1-B5CE"] = "",
+    ["F3Q6-T9XN-1YK2-C6DF"] = "",
+    ["G7R9-U0YO-2ZL3-D7EG"] = "",
+    ["H2S5-V1ZP-3AM4-E8FH"] = "",
+    ["I9T8-W2AQ-4BN5-F9GI"] = "",
+    ["J3U6-X3BR-5CO6-G0HJ"] = "",
+    ["K7V9-Y4CS-6DP7-H1IK"] = "",
+    ["L2W5-Z5DT-7EQ8-I2JL"] = "",
+    ["M9X8-A6EU-8FR9-J3KM"] = "",
+    ["N3Y6-B7FV-9GS0-K4LN"] = "",
+    ["O7Z9-C8GW-0HT1-L5MO"] = "",
+    ["P2A5-D9HX-1IU2-M6NP"] = "",
+    ["Q9B8-E0IY-2JV3-N7OQ"] = "",
+    ["R3C6-F1JZ-3KW4-O8PR"] = "",
+    ["S7D9-G2KA-4LX5-P9QS"] = "",
+    ["T2E5-H3LB-5MY6-Q0RT"] = "",
+    ["U9F8-I4MC-6NZ7-R1SU"] = "",
+    ["V3G6-J5ND-7OA8-S2TV"] = "",
+    ["W7H9-K6OE-8PB9-T3UW"] = "",
+    ["X2I5-L7PF-9QC0-U4VX"] = "",
+    ["Y9J8-M8QG-0RD1-V5WY"] = "",
+    ["Z3K6-N9RH-1SE2-W6XZ"] = "",
+    ["A7L9-O0SI-2TF3-X7YA"] = "",
+    ["B2M5-P1TJ-3UG4-Y8ZB"] = "",
+    ["C9N8-Q2UK-4VH5-Z9AC"] = "",
+    ["D3O6-R3VL-5WI6-A0BD"] = "",
+    ["E7P9-S4WM-6XJ7-B1CE"] = "",
+    ["F2Q5-T5XN-7YK8-C2DF"] = "",
+    ["G9R8-U6YO-8ZL9-D3EG"] = "",
+    ["H3S6-V7ZP-9AM0-E4FH"] = "",
+    ["I7T9-W8AQ-0BN1-F5GI"] = "",
+    ["J2U5-X9BR-1CO2-G6HJ"] = "",
+    ["K9V8-Y0CS-2DP3-H7IK"] = "",
+    ["L3W6-Z1DT-3EQ4-I8JL"] = "",
+    ["M7X9-A2EU-4FR5-J9KM"] = "",
+    ["N2Y5-B3FV-5GS6-K0LN"] = "",
+    ["O9Z8-C4GW-6HT7-L1MO"] = "",
+    ["P3A6-D5HX-7IU8-M2NP"] = "",
+    ["Q7B9-E6IY-8JV9-N3OQ"] = "",
+    ["R2C5-F7JZ-9KW0-O4PR"] = "",
+    ["S9D8-G8KA-0LX1-P5QS"] = "",
+    ["T3E6-H9LB-1MY2-Q6RT"] = "",
+    ["U7F9-I0MC-2NZ3-R7SU"] = "",
+    ["V2G5-J1ND-3OA4-S8TV"] = "",
+    ["W9H8-K2OE-4PB5-T9UW"] = "",
+    ["X3I6-L3PF-5QC6-U0VX"] = "",
+    ["Y7J9-M4QG-6RD7-V1WY"] = "",
+    ["Z2K5-N5RH-7SE8-W2XZ"] = "",
+    ["A9L8-O6SI-8TF9-X3YA"] = "",
+    ["B3M6-P7TJ-9UG0-Y4ZB"] = "",
+    ["C7N9-Q8UK-0VH1-Z5AC"] = "",
+    ["D2O5-R9VL-1WI2-A6BD"] = "",
+    ["E9P8-S0WM-2XJ3-B7CE"] = "",
+    ["F3Q6-T1XN-3YK4-C8DF"] = "",
+    ["G7R9-U2YO-4ZL5-D9EG"] = "",
+    ["H2S5-V3ZP-5AM6-E0FH"] = "",
+    ["I9T8-W4AQ-6BN7-F1GI"] = "",
+    ["J3U6-X5BR-7CO8-G2HJ"] = "",
+    ["K7V9-Y6CS-8DP9-H3IK"] = "",
+    ["L2W5-Z7DT-9EQ0-I4JL"] = "",
+    ["M9X8-A8EU-0FR1-J5KM"] = "",
+    ["N3Y6-B9FV-1GS2-K6LN"] = "",
+    ["O7Z9-C0GW-2HT3-L7MO"] = "",
+    ["P2A5-D1HX-3IU4-M8NP"] = "",
+    ["Q9B8-E2IY-4JV5-N9OQ"] = "",
+    ["R3C6-F3JZ-5KW6-O0PR"] = "",
+    ["S7D9-G4KA-6LX7-P1QS"] = "",
+    ["T2E5-H5LB-7MY8-Q2RT"] = "",
+    ["U9F8-I6MC-8NZ9-R3SU"] = "",
+    ["V3G6-J7ND-9OA0-S4TV"] = "",
+    ["W7H9-K8OE-0PB1-T5UW"] = "",
+    ["X2I5-L9PF-1QC2-U6VX"] = "",
+    ["Y9J8-M0QG-2RD3-V7WY"] = "",
+    ["Z3K6-N1RH-3SE4-W8XZ"] = "",
+    ["A7L9-O2SI-4TF5-X9YA"] = "",
+    ["B2M5-P3TJ-5UG6-Y0ZB"] = "",
+    ["C9N8-Q4UK-6VH7-Z1AC"] = "",
+    ["D3O6-R5VL-7WI8-A2BD"] = "",
+    ["E7P9-S6WM-8XJ9-B3CE"] = "",
+    ["F2Q5-T7XN-9YK0-C4DF"] = "",
+    ["G9R8-U8YO-0ZL1-D5EG"] = "",
+    ["H3S6-V9ZP-1AM2-E6FH"] = "",
+    ["I7T9-W0AQ-2BN3-F7GI"] = "",
+    ["J2U5-X1BR-3CO4-G8HJ"] = "",
+    ["K9V8-Y2CS-4DP5-H9IK"] = "",
+    ["L3W6-Z3DT-5EQ6-I0JL"] = "",
+    ["M7X9-A4EU-6FR7-J1KM"] = "",
+    ["N2Y5-B5FV-7GS8-K2LN"] = "",
+    ["O9Z8-C6GW-8HT9-L3MO"] = "",
+    ["P3A6-D7HX-9IU0-M4NP"] = "",
+    ["Q7B9-E8IY-0JV1-N5OQ"] = "",
+    ["R2C5-F9JZ-1KW2-O6PR"] = "",
+    ["S9D8-G0KA-2LX3-P7QS"] = "",
+    ["T3E6-H1LB-3MY4-Q8RT"] = "",
+    ["U7F9-I2MC-4NZ5-R9SU"] = "",
+    ["V2G5-J3ND-5OA6-S0TV"] = "",
+    ["W9H8-K4OE-6PB7-T1UW"] = "",
+    ["X3I6-L5PF-7QC8-U2VX"] = "",
+    ["Y7J9-M6QG-8RD9-V3WY"] = "",
+    ["Z2K5-N7RH-9SE0-W4XZ"] = "",
+    ["A9L8-O8SI-0TF1-X5YA"] = "",
+    ["B3M6-P9TJ-1UG2-Y6ZB"] = "",
+    ["C7N9-Q0UK-2VH3-Z7AC"] = "",
+    ["D2O5-R1VL-3WI4-A8BD"] = "",
+    ["E9P8-S2WM-4XJ5-B9CE"] = "",
+    ["F3Q6-T3XN-5YK6-C0DF"] = "",
+    ["G7R9-U4YO-6ZL7-D1EG"] = "",
+    ["H2S5-V5ZP-7AM8-E2FH"] = "",
+    ["I9T8-W6AQ-8BN9-F3GI"] = "",
+    ["J3U6-X7BR-9CO0-G4HJ"] = "",
+    ["K7V9-Y8CS-0DP1-H5IK"] = "",
+    ["L2W5-Z9DT-1EQ2-I6JL"] = "",
+    ["M9X8-A0EU-2FR3-J7KM"] = "",
+    ["N3Y6-B1FV-3GS4-K8LN"] = "",
+    ["O7Z9-C2GW-4HT5-L9MO"] = "",
+    ["P2A5-D3HX-5IU6-M0NP"] = "",
+    ["Q9B8-E4IY-6JV7-N1OQ"] = "",
+    ["R3C6-F5JZ-7KW8-O2PR"] = "",
+    ["S7D9-G6KA-8LX9-P3QS"] = "",
+    ["T2E5-H7LB-9MY0-Q4RT"] = "",
+    ["U9F8-I8MC-0NZ1-R5SU"] = "",
+    ["V3G6-J9ND-1OA2-S6TV"] = "",
+    ["W7H9-K0OE-2PB3-T7UW"] = "",
+    ["X2I5-L1PF-3QC4-U8VX"] = "",
+    ["Y9J8-M2QG-4RD5-V9WY"] = "",
+    ["Z3K6-N3RH-5SE6-W0XZ"] = "",
+    ["A7L9-O4SI-6TF7-X1YA"] = "",
+    ["B2M5-P5TJ-7UG8-Y2ZB"] = "",
+    ["C9N8-Q6UK-8VH9-Z3AC"] = "",
+    ["D3O6-R7VL-9WI0-A4BD"] = "",
+    ["E7P9-S8WM-0XJ1-B5CE"] = "",
+    ["F2Q5-T9XN-1YK2-C6DF"] = "",
+    ["G9R8-U0YO-2ZL3-D7EG"] = "",
+    ["H3S6-V1ZP-3AM4-E8FH"] = "",
+    ["I7T9-W2AQ-4BN5-F9GI"] = "",
+    ["J2U5-X3BR-5CO6-G0HJ"] = "",
+    ["K9V8-Y4CS-6DP7-H1IK"] = "",
+    ["L3W6-Z5DT-7EQ8-I2JL"] = "",
+    ["M7X9-A6EU-8FR9-J3KM"] = "",
+    ["N2Y5-B7FV-9GS0-K4LN"] = "",
+    ["O9Z8-C8GW-0HT1-L5MO"] = "",
+    ["P3A6-D9HX-1IU2-M6NP"] = "",
+    ["Q7B9-E0IY-2JV3-N7OQ"] = "",
+    ["R2C5-F1JZ-3KW4-O8PR"] = "",
+    ["S9D8-G2KA-4LX5-P9QS"] = "",
+    ["T3E6-H3LB-5MY6-Q0RT"] = "",
+    ["U7F9-I4MC-6NZ7-R1SU"] = "",
+    ["V2G5-J5ND-7OA8-S2TV"] = "",
+    ["W9H8-K6OE-8PB9-T3UW"] = "",
+    ["X3I6-L7PF-9QC0-U4VX"] = "",
+    ["Y7J9-M8QG-0RD1-V5WY"] = "",
+    ["Z2K5-N9RH-1SE2-W6XZ"] = "",
+    ["A9L8-O0SI-2TF3-X7YA"] = "",
+    ["B3M6-P1TJ-3UG4-Y8ZB"] = "",
+    ["C7N9-Q2UK-4VH5-Z9AC"] = "",
+    ["D2O5-R3VL-5WI6-A0BD"] = "",
+    ["E9P8-S4WM-6XJ7-B1CE"] = "",
+    ["F3Q6-T5XN-7YK8-C2DF"] = "",
+    ["G7R9-U6YO-8ZL9-D3EG"] = "",
+    ["H2S5-V7ZP-9AM0-E4FH"] = "",
+    ["I9T8-W8AQ-0BN1-F5GI"] = "",
+    ["J3U6-X9BR-1CO2-G6HJ"] = "",
+    ["K7V9-Y0CS-2DP3-H7IK"] = "",
+    ["L2W5-Z1DT-3EQ4-I8JL"] = "",
+}
+
+-- ============================================
+-- ====== UI DE VERIFICACAO DE KEY ======
+-- ============================================
+
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "VitorxyzKeyGUI"
+keyGui.Parent = player.PlayerGui
+keyGui.ResetOnSpawn = false
+
+local keyFrame = Instance.new("Frame", keyGui)
+keyFrame.Size = UDim2.new(0, 380, 0, 320)
+keyFrame.Position = UDim2.new(0.5, -190, 0.5, -160)
+keyFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+keyFrame.BorderSizePixel = 0
+keyFrame.Active = true
+keyFrame.Draggable = true
+
+local keyCorner = Instance.new("UICorner", keyFrame)
+keyCorner.CornerRadius = UDim.new(0, 12)
+
+local keyStroke = Instance.new("UIStroke", keyFrame)
+keyStroke.Color = Color3.fromRGB(0, 170, 255)
+keyStroke.Thickness = 2
+
+local keyTitle = Instance.new("TextLabel", keyFrame)
+keyTitle.Size = UDim2.new(1, 0, 0, 50)
+keyTitle.Position = UDim2.new(0, 0, 0, 0)
+keyTitle.Text = "VITORXYZ - VERIFICACAO"
+keyTitle.TextColor3 = Color3.fromRGB(0, 170, 255)
+keyTitle.BackgroundTransparency = 1
+keyTitle.Font = Enum.Font.GothamBold
+keyTitle.TextSize = 20
+
+local keySub = Instance.new("TextLabel", keyFrame)
+keySub.Size = UDim2.new(1, 0, 0, 20)
+keySub.Position = UDim2.new(0, 0, 0, 50)
+keySub.Text = "Digite sua key para continuar"
+keySub.TextColor3 = Color3.fromRGB(180, 180, 180)
+keySub.BackgroundTransparency = 1
+keySub.Font = Enum.Font.Gotham
+keySub.TextSize = 12
+
+local hwidLabel = Instance.new("TextLabel", keyFrame)
+hwidLabel.Size = UDim2.new(0.9, 0, 0, 20)
+hwidLabel.Position = UDim2.new(0.05, 0, 0, 75)
+hwidLabel.Text = "Seu HWID: " .. string.sub(getHWID(), 1, 20) .. "..."
+hwidLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+hwidLabel.BackgroundTransparency = 1
+hwidLabel.Font = Enum.Font.Gotham
+hwidLabel.TextSize = 10
+
+local keyInput = Instance.new("TextBox", keyFrame)
+keyInput.Size = UDim2.new(0.85, 0, 0, 45)
+keyInput.Position = UDim2.new(0.075, 0, 0.35, 0)
+keyInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyInput.PlaceholderText = "Digite sua key aqui..."
+keyInput.Text = ""
+keyInput.Font = Enum.Font.Gotham
+keyInput.TextSize = 14
+keyInput.BorderSizePixel = 0
+Instance.new("UICorner", keyInput).CornerRadius = UDim.new(0, 8)
+local keyInputStroke = Instance.new("UIStroke", keyInput)
+keyInputStroke.Color = Color3.fromRGB(80, 80, 80)
+keyInputStroke.Thickness = 1
+
+local keyBtn = Instance.new("TextButton", keyFrame)
+keyBtn.Size = UDim2.new(0.85, 0, 0, 45)
+keyBtn.Position = UDim2.new(0.075, 0, 0.55, 0)
+keyBtn.Text = "VERIFICAR KEY"
+keyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+keyBtn.Font = Enum.Font.GothamBold
+keyBtn.TextSize = 15
+keyBtn.BorderSizePixel = 0
+Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 8)
+local keyBtnStroke = Instance.new("UIStroke", keyBtn)
+keyBtnStroke.Color = Color3.fromRGB(100, 200, 255)
+keyBtnStroke.Thickness = 1
+
+local keyStatus = Instance.new("TextLabel", keyFrame)
+keyStatus.Size = UDim2.new(0.9, 0, 0, 40)
+keyStatus.Position = UDim2.new(0.05, 0, 0.78, 0)
+keyStatus.Text = ""
+keyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+keyStatus.BackgroundTransparency = 1
+keyStatus.Font = Enum.Font.GothamBold
+keyStatus.TextSize = 12
+keyStatus.TextWrapped = true
+
+local keyClose = Instance.new("TextButton", keyFrame)
+keyClose.Size = UDim2.new(0, 30, 0, 30)
+keyClose.Position = UDim2.new(1, -38, 0, 8)
+keyClose.Text = "X"
+keyClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyClose.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+keyClose.Font = Enum.Font.GothamBold
+keyClose.TextSize = 16
+keyClose.BorderSizePixel = 0
+Instance.new("UICorner", keyClose).CornerRadius = UDim.new(0, 8)
+local keyCloseStroke = Instance.new("UIStroke", keyClose)
+keyCloseStroke.Color = Color3.fromRGB(255, 255, 255)
+keyCloseStroke.Thickness = 1
+
+keyClose.MouseButton1Click:Connect(function()
+    keyGui:Destroy()
+end)
+
+-- ===== VERIFICACAO =====
+local keyVerificada = false
+
+local function verificarKey()
+    local input = keyInput.Text
+    local hwidAtual = getHWID()
+    
+    if input == "" then
+        keyStatus.Text = "Digite uma key valida!"
+        keyStatus.TextColor3 = Color3.fromRGB(255, 200, 50)
+        return
+    end
+    
+    local hwidSalvo = keysValidas[input]
+    
+    if hwidSalvo == nil then
+        keyStatus.Text = "Key invalida! Tente novamente."
+        keyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    if hwidSalvo == "" then
+        keysValidas[input] = hwidAtual
+        keyStatus.Text = "Key ativada neste PC!"
+        keyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
+        task.wait(1.5)
+        keyVerificada = true
+        keyFrame:Destroy()
+        keyGui:Destroy()
+        print("Key ativada: " .. input)
+        return
+    end
+    
+    if hwidSalvo ~= hwidAtual then
+        keyStatus.Text = "Key nao pertence a este PC!"
+        keyStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    keyVerificada = true
+    keyStatus.Text = "Key valida! Carregando painel..."
+    keyStatus.TextColor3 = Color3.fromRGB(100, 255, 100)
+    task.wait(1)
+    keyFrame:Destroy()
+    keyGui:Destroy()
+    print("Key verificada com sucesso!")
+end
+
+keyBtn.MouseButton1Click:Connect(verificarKey)
+keyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then verificarKey() end
+end)
+
+while not keyVerificada do
+    task.wait(0.1)
+end
+
+-- ============================================
+-- ====== PAINEL VITORXYZ ======
+-- ============================================
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "VitorxyzGUI"
 gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
--- ===== VARIAVEIS =====
 local bolaAtiva = false
 local bolaOriginal = nil
 local bolaLisaAtiva = false
@@ -17,7 +425,6 @@ local corSelecionada = Color3.fromRGB(255, 255, 255)
 local minimizado = false
 local tamanhoMultiplier = 1.0
 
--- ===== FUNCAO PARA ENCONTRAR A BOLA =====
 local function findBall()
     local stadium = workspace:FindFirstChild("WorkspaceStadiumMap1")
     if stadium then
@@ -56,31 +463,23 @@ local function findBall()
     return nil
 end
 
--- ===== FUNCAO PARA ALTERAR TAMANHO VISUAL (SO MESH) =====
 local function aplicarTamanhoVisual()
     local ball = findBall()
     if not ball then return false end
-    
-    -- So mexe na SpecialMesh, NAO no Size da bola
     local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
     if mesh then
         pcall(function()
             mesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
         end)
     else
-        -- Se nao tiver mesh, cria uma invisivel so pra escalar visualmente
-        print("Bola nao tem SpecialMesh, criando uma para escala visual...")
         local newMesh = Instance.new("SpecialMesh")
         newMesh.MeshType = Enum.MeshType.Sphere
         newMesh.Parent = ball
         newMesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
     end
-    
-    print("Tamanho visual aplicado: " .. tamanhoMultiplier .. "x")
     return true
 end
 
--- ===== FUNCAO PARA RESETAR TAMANHO VISUAL =====
 local function resetarTamanhoVisual()
     local ball = findBall()
     if not ball then return false end
@@ -94,7 +493,6 @@ local function resetarTamanhoVisual()
     return true
 end
 
--- ===== FUNCAO PARA APLICAR MESH =====
 local function aplicarMesh(meshId)
     local ball = findBall()
     if not ball then return false end
@@ -114,7 +512,6 @@ local function aplicarMesh(meshId)
     return true
 end
 
--- ===== FUNCAO PARA APLICAR TEXTURA =====
 local function aplicarTextura(textureId)
     local ball = findBall()
     if not ball then return false end
@@ -134,7 +531,6 @@ local function aplicarTextura(textureId)
     return true
 end
 
--- ===== FUNCAO PARA REMOVER TEXTURAS =====
 local function removerTexturas()
     local ball = findBall()
     if not ball then return false end
@@ -151,7 +547,6 @@ local function removerTexturas()
     return true
 end
 
--- ===== FUNCAO PARA RESETAR MESH =====
 local function resetarMesh()
     local ball = findBall()
     if not ball then return false end
@@ -163,7 +558,6 @@ local function resetarMesh()
     return true
 end
 
--- ===== FUNCAO PARA DEIXAR A BOLA LISA =====
 local function deixarBolaLisa()
     local ball = findBall()
     if not ball then return false end
@@ -186,7 +580,6 @@ local function deixarBolaLisa()
     return true
 end
 
--- ===== FUNCAO PARA RESETAR BOLA LISA =====
 local function resetarBolaLisa()
     local ball = findBall()
     if not ball then return false end
@@ -196,7 +589,6 @@ local function resetarBolaLisa()
     return true
 end
 
--- ===== FUNCAO PARA RENOMEAR =====
 local function renomearBola()
     local ball = findBall()
     if ball then
@@ -206,9 +598,7 @@ local function renomearBola()
     return false
 end
 
--- ============================================
--- ====== CRIAR UI PRETA E BRANCA ======
--- ============================================
+-- ===== CRIAR UI DO PAINEL =====
 
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 340, 0, 680)
@@ -217,10 +607,7 @@ main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
-
-local mainCorner = Instance.new("UICorner", main)
-mainCorner.CornerRadius = UDim.new(0, 12)
-
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 local mainStroke = Instance.new("UIStroke", main)
 mainStroke.Color = Color3.fromRGB(255, 255, 255)
 mainStroke.Thickness = 2
@@ -235,410 +622,4 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 
 local minBtn = Instance.new("TextButton", main)
-minBtn.Size = UDim2.new(0, 30, 0, 30)
-minBtn.Position = UDim2.new(1, -72, 0, 5)
-minBtn.Text = "-"
-minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-minBtn.Font = Enum.Font.GothamBold
-minBtn.TextSize = 20
-minBtn.BorderSizePixel = 0
-Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 8)
-local sm = Instance.new("UIStroke", minBtn)
-sm.Color = Color3.fromRGB(255, 255, 255)
-sm.Thickness = 1
-
-local closeBtn = Instance.new("TextButton", main)
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -38, 0, 5)
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 16
-closeBtn.BorderSizePixel = 0
-Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
-local sc = Instance.new("UIStroke", closeBtn)
-sc.Color = Color3.fromRGB(255, 255, 255)
-sc.Thickness = 1
-
-local conteudo = Instance.new("Frame", main)
-conteudo.Size = UDim2.new(1, 0, 1, -40)
-conteudo.Position = UDim2.new(0, 0, 0, 40)
-conteudo.BackgroundTransparency = 1
-
--- BOTAO BOLA NOVA
-local btnBolaNova = Instance.new("TextButton", conteudo)
-btnBolaNova.Size = UDim2.new(0.85, 0, 0, 32)
-btnBolaNova.Position = UDim2.new(0.075, 0, 0.02, 0)
-btnBolaNova.Text = "BOLA NOVA: OFF"
-btnBolaNova.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnBolaNova.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnBolaNova.Font = Enum.Font.GothamBold
-btnBolaNova.TextSize = 13
-btnBolaNova.BorderSizePixel = 0
-Instance.new("UICorner", btnBolaNova).CornerRadius = UDim.new(0, 8)
-local s1 = Instance.new("UIStroke", btnBolaNova)
-s1.Color = Color3.fromRGB(80, 80, 80)
-s1.Thickness = 1
-
--- BOTAO BOLA LISA
-local btnBolaLisa = Instance.new("TextButton", conteudo)
-btnBolaLisa.Size = UDim2.new(0.85, 0, 0, 32)
-btnBolaLisa.Position = UDim2.new(0.075, 0, 0.09, 0)
-btnBolaLisa.Text = "BOLA LISA: OFF"
-btnBolaLisa.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnBolaLisa.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnBolaLisa.Font = Enum.Font.GothamBold
-btnBolaLisa.TextSize = 13
-btnBolaLisa.BorderSizePixel = 0
-Instance.new("UICorner", btnBolaLisa).CornerRadius = UDim.new(0, 8)
-local s2 = Instance.new("UIStroke", btnBolaLisa)
-s2.Color = Color3.fromRGB(80, 80, 80)
-s2.Thickness = 1
-
--- LABEL CORES
-local corLabel = Instance.new("TextLabel", conteudo)
-corLabel.Size = UDim2.new(0.85, 0, 0, 18)
-corLabel.Position = UDim2.new(0.075, 0, 0.16, 0)
-corLabel.Text = "COR DA BOLA LISA:"
-corLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
-corLabel.BackgroundTransparency = 1
-corLabel.Font = Enum.Font.GothamBold
-corLabel.TextSize = 11
-
-local cores = {
-    {nome = "Branco", cor = Color3.fromRGB(255, 255, 255)},
-    {nome = "Preto", cor = Color3.fromRGB(0, 0, 0)},
-    {nome = "Vermelho", cor = Color3.fromRGB(255, 0, 0)},
-    {nome = "Azul", cor = Color3.fromRGB(0, 0, 255)},
-    {nome = "Verde", cor = Color3.fromRGB(0, 255, 0)},
-    {nome = "Amarelo", cor = Color3.fromRGB(255, 255, 0)},
-    {nome = "Rosa", cor = Color3.fromRGB(255, 0, 255)},
-    {nome = "Laranja", cor = Color3.fromRGB(255, 165, 0)},
-    {nome = "Roxo", cor = Color3.fromRGB(128, 0, 128)},
-    {nome = "Ciano", cor = Color3.fromRGB(0, 255, 255)},
-}
-
-local corFrame = Instance.new("Frame", conteudo)
-corFrame.Size = UDim2.new(0.85, 0, 0, 70)
-corFrame.Position = UDim2.new(0.075, 0, 0.20, 0)
-corFrame.BackgroundTransparency = 1
-
-local corGrid = Instance.new("UIGridLayout", corFrame)
-corGrid.CellSize = UDim2.new(0, 30, 0, 30)
-corGrid.CellPadding = UDim2.new(0, 6, 0, 6)
-corGrid.SortOrder = Enum.SortOrder.LayoutOrder
-
-for i, c in ipairs(cores) do
-    local btnCor = Instance.new("TextButton", corFrame)
-    btnCor.Size = UDim2.new(0, 30, 0, 30)
-    btnCor.BackgroundColor3 = c.cor
-    btnCor.Text = ""
-    btnCor.BorderSizePixel = 0
-    btnCor.LayoutOrder = i
-    Instance.new("UICorner", btnCor).CornerRadius = UDim.new(1, 0)
-    local stroke = Instance.new("UIStroke", btnCor)
-    stroke.Color = Color3.fromRGB(255, 255, 255)
-    stroke.Thickness = 2
-    btnCor.MouseButton1Click:Connect(function()
-        corSelecionada = c.cor
-        if bolaLisaAtiva then
-            local ball = findBall()
-            if ball then ball.Color = c.cor end
-        end
-        for _, other in ipairs(corFrame:GetChildren()) do
-            if other:IsA("TextButton") then
-                local s = other:FindFirstChildWhichIsA("UIStroke")
-                if s then
-                    if other == btnCor then
-                        s.Color = Color3.fromRGB(0, 170, 255)
-                        s.Thickness = 3
-                    else
-                        s.Color = Color3.fromRGB(255, 255, 255)
-                        s.Thickness = 2
-                    end
-                end
-            end
-        end
-    end)
-end
-
--- TAMANHO
-local sizeLabel = Instance.new("TextLabel", conteudo)
-sizeLabel.Size = UDim2.new(0.85, 0, 0, 18)
-sizeLabel.Position = UDim2.new(0.075, 0, 0.36, 0)
-sizeLabel.Text = "TAMANHO VISUAL DA BOLA:"
-sizeLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
-sizeLabel.BackgroundTransparency = 1
-sizeLabel.Font = Enum.Font.GothamBold
-sizeLabel.TextSize = 11
-
-local btnTamanhoMenos = Instance.new("TextButton", conteudo)
-btnTamanhoMenos.Size = UDim2.new(0.15, 0, 0, 35)
-btnTamanhoMenos.Position = UDim2.new(0.075, 0, 0.40, 0)
-btnTamanhoMenos.Text = "-"
-btnTamanhoMenos.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnTamanhoMenos.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
-btnTamanhoMenos.Font = Enum.Font.GothamBold
-btnTamanhoMenos.TextSize = 20
-btnTamanhoMenos.BorderSizePixel = 0
-Instance.new("UICorner", btnTamanhoMenos).CornerRadius = UDim.new(0, 5)
-local sTm = Instance.new("UIStroke", btnTamanhoMenos)
-sTm.Color = Color3.fromRGB(255, 100, 100)
-sTm.Thickness = 1
-
-local btnTamanhoMais = Instance.new("TextButton", conteudo)
-btnTamanhoMais.Size = UDim2.new(0.15, 0, 0, 35)
-btnTamanhoMais.Position = UDim2.new(0.77, 0, 0.40, 0)
-btnTamanhoMais.Text = "+"
-btnTamanhoMais.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnTamanhoMais.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
-btnTamanhoMais.Font = Enum.Font.GothamBold
-btnTamanhoMais.TextSize = 20
-btnTamanhoMais.BorderSizePixel = 0
-Instance.new("UICorner", btnTamanhoMais).CornerRadius = UDim.new(0, 5)
-local sTp = Instance.new("UIStroke", btnTamanhoMais)
-sTp.Color = Color3.fromRGB(100, 255, 100)
-sTp.Thickness = 1
-
-local lblTamanho = Instance.new("TextLabel", conteudo)
-lblTamanho.Size = UDim2.new(0.5, 0, 0, 35)
-lblTamanho.Position = UDim2.new(0.25, 0, 0.40, 0)
-lblTamanho.Text = "1.0x"
-lblTamanho.TextColor3 = Color3.fromRGB(255, 255, 255)
-lblTamanho.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-lblTamanho.Font = Enum.Font.GothamBold
-lblTamanho.TextSize = 16
-lblTamanho.BorderSizePixel = 0
-Instance.new("UICorner", lblTamanho).CornerRadius = UDim.new(0, 5)
-local sLbl = Instance.new("UIStroke", lblTamanho)
-sLbl.Color = Color3.fromRGB(80, 80, 80)
-sLbl.Thickness = 1
-
-local btnResetarTamanho = Instance.new("TextButton", conteudo)
-btnResetarTamanho.Size = UDim2.new(0.85, 0, 0, 25)
-btnResetarTamanho.Position = UDim2.new(0.075, 0, 0.48, 0)
-btnResetarTamanho.Text = "RESETAR TAMANHO VISUAL"
-btnResetarTamanho.TextColor3 = Color3.fromRGB(255, 200, 200)
-btnResetarTamanho.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-btnResetarTamanho.Font = Enum.Font.GothamBold
-btnResetarTamanho.TextSize = 11
-btnResetarTamanho.BorderSizePixel = 0
-Instance.new("UICorner", btnResetarTamanho).CornerRadius = UDim.new(0, 5)
-local sRt = Instance.new("UIStroke", btnResetarTamanho)
-sRt.Color = Color3.fromRGB(120, 60, 60)
-sRt.Thickness = 1
-
--- BOTAO ID DE TEXTURA
-local btnTextura = Instance.new("TextButton", conteudo)
-btnTextura.Size = UDim2.new(0.85, 0, 0, 32)
-btnTextura.Position = UDim2.new(0.075, 0, 0.54, 0)
-btnTextura.Text = "ID de Textura"
-btnTextura.TextColor3 = Color3.fromRGB(0, 170, 255)
-btnTextura.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnTextura.Font = Enum.Font.GothamBold
-btnTextura.TextSize = 13
-btnTextura.BorderSizePixel = 0
-Instance.new("UICorner", btnTextura).CornerRadius = UDim.new(0, 8)
-local s3 = Instance.new("UIStroke", btnTextura)
-s3.Color = Color3.fromRGB(80, 80, 80)
-s3.Thickness = 1
-
--- BOTAO ID DE MESH
-local btnMesh = Instance.new("TextButton", conteudo)
-btnMesh.Size = UDim2.new(0.85, 0, 0, 32)
-btnMesh.Position = UDim2.new(0.075, 0, 0.61, 0)
-btnMesh.Text = "ID de Mesh (MeshContent)"
-btnMesh.TextColor3 = Color3.fromRGB(0, 170, 255)
-btnMesh.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnMesh.Font = Enum.Font.GothamBold
-btnMesh.TextSize = 12
-btnMesh.BorderSizePixel = 0
-Instance.new("UICorner", btnMesh).CornerRadius = UDim.new(0, 8)
-local s4 = Instance.new("UIStroke", btnMesh)
-s4.Color = Color3.fromRGB(80, 80, 80)
-s4.Thickness = 1
-
--- BOTAO REMOVER TEXTURA
-local btnRemoverTex = Instance.new("TextButton", conteudo)
-btnRemoverTex.Size = UDim2.new(0.85, 0, 0, 32)
-btnRemoverTex.Position = UDim2.new(0.075, 0, 0.68, 0)
-btnRemoverTex.Text = "REMOVER TEXTURA"
-btnRemoverTex.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnRemoverTex.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnRemoverTex.Font = Enum.Font.GothamBold
-btnRemoverTex.TextSize = 13
-btnRemoverTex.BorderSizePixel = 0
-Instance.new("UICorner", btnRemoverTex).CornerRadius = UDim.new(0, 8)
-local s5 = Instance.new("UIStroke", btnRemoverTex)
-s5.Color = Color3.fromRGB(80, 80, 80)
-s5.Thickness = 1
-
--- BOTAO RESETAR MESH
-local btnResetarMesh = Instance.new("TextButton", conteudo)
-btnResetarMesh.Size = UDim2.new(0.85, 0, 0, 32)
-btnResetarMesh.Position = UDim2.new(0.075, 0, 0.75, 0)
-btnResetarMesh.Text = "RESETAR MESH"
-btnResetarMesh.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnResetarMesh.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnResetarMesh.Font = Enum.Font.GothamBold
-btnResetarMesh.TextSize = 13
-btnResetarMesh.BorderSizePixel = 0
-Instance.new("UICorner", btnResetarMesh).CornerRadius = UDim.new(0, 8)
-local s6 = Instance.new("UIStroke", btnResetarMesh)
-s6.Color = Color3.fromRGB(80, 80, 80)
-s6.Thickness = 1
-
--- INPUTS
-local textureInput = Instance.new("TextBox", conteudo)
-textureInput.Size = UDim2.new(0.85, 0, 0, 28)
-textureInput.Position = UDim2.new(0.075, 0, 0.54, 0)
-textureInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-textureInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-textureInput.PlaceholderText = "rbxassetid://ID_DA_TEXTURA"
-textureInput.Text = ""
-textureInput.Font = Enum.Font.Gotham
-textureInput.TextSize = 11
-textureInput.Visible = false
-textureInput.BorderSizePixel = 0
-Instance.new("UICorner", textureInput).CornerRadius = UDim.new(0, 8)
-
-local meshInput = Instance.new("TextBox", conteudo)
-meshInput.Size = UDim2.new(0.85, 0, 0, 28)
-meshInput.Position = UDim2.new(0.075, 0, 0.61, 0)
-meshInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-meshInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-meshInput.PlaceholderText = "rbxassetid://ID_DA_MESH"
-meshInput.Text = ""
-meshInput.Font = Enum.Font.Gotham
-meshInput.TextSize = 11
-meshInput.Visible = false
-meshInput.BorderSizePixel = 0
-Instance.new("UICorner", meshInput).CornerRadius = UDim.new(0, 8)
-
--- ============================================
--- ====== FUNCOES DOS BOTOES ======
--- ============================================
-
-btnBolaNova.MouseButton1Click:Connect(function()
-    bolaAtiva = not bolaAtiva
-    if bolaAtiva then
-        btnBolaNova.Text = "BOLA NOVA: ON"
-        btnBolaNova.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-        renomearBola()
-    else
-        btnBolaNova.Text = "BOLA NOVA: OFF"
-        btnBolaNova.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        local ball = findBall()
-        if ball then ball.Name = "TPS" end
-    end
-end)
-
-btnBolaLisa.MouseButton1Click:Connect(function()
-    bolaLisaAtiva = not bolaLisaAtiva
-    if bolaLisaAtiva then
-        btnBolaLisa.Text = "BOLA LISA: ON"
-        btnBolaLisa.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-        deixarBolaLisa()
-    else
-        btnBolaLisa.Text = "BOLA LISA: OFF"
-        btnBolaLisa.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        resetarBolaLisa()
-    end
-end)
-
-btnTamanhoMais.MouseButton1Click:Connect(function()
-    if tamanhoMultiplier < 10.0 then
-        tamanhoMultiplier = math.floor((tamanhoMultiplier + 0.5) * 10) / 10
-        lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
-        aplicarTamanhoVisual()
-    end
-end)
-
-btnTamanhoMenos.MouseButton1Click:Connect(function()
-    if tamanhoMultiplier > 0.5 then
-        tamanhoMultiplier = math.floor((tamanhoMultiplier - 0.5) * 10) / 10
-        lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
-        aplicarTamanhoVisual()
-    end
-end)
-
-btnResetarTamanho.MouseButton1Click:Connect(function()
-    resetarTamanhoVisual()
-    lblTamanho.Text = "1.0x"
-end)
-
-btnTextura.MouseButton1Click:Connect(function()
-    textureInput.Visible = not textureInput.Visible
-    if textureInput.Visible then textureInput:CaptureFocus() end
-end)
-
-textureInput.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local id = textureInput.Text
-        if id and id ~= "" then
-            aplicarTextura(id)
-            textureInput.Visible = false
-        end
-    end
-end)
-
-btnMesh.MouseButton1Click:Connect(function()
-    meshInput.Visible = not meshInput.Visible
-    if meshInput.Visible then meshInput:CaptureFocus() end
-end)
-
-meshInput.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local id = meshInput.Text
-        if id and id ~= "" then
-            aplicarMesh(id)
-            meshInput.Visible = false
-        end
-    end
-end)
-
-btnRemoverTex.MouseButton1Click:Connect(function()
-    removerTexturas()
-end)
-
-btnResetarMesh.MouseButton1Click:Connect(function()
-    resetarMesh()
-end)
-
-minBtn.MouseButton1Click:Connect(function()
-    minimizado = not minimizado
-    conteudo.Visible = not minimizado
-    if minimizado then
-        main.Size = UDim2.new(0, 340, 0, 40)
-        minBtn.Text = "+"
-    else
-        main.Size = UDim2.new(0, 340, 0, 680)
-        minBtn.Text = "-"
-    end
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-    main.Visible = not main.Visible
-end)
-
--- KEYBIND K
-game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.K then
-        minimizado = not minimizado
-        conteudo.Visible = not minimizado
-        if minimizado then
-            main.Size = UDim2.new(0, 340, 0, 40)
-            minBtn.Text = "+"
-        else
-            main.Size = UDim2.new(0, 340, 0, 680)
-            minBtn.Text = "-"
-        end
-    end
-end)
-
-print("Vitorxyz - Alterador de ball carregado!")
-print("Tamanho VISUAL apenas (nao afeta fisica)")
-print("Pressione K para minimizar/abrir")
+min
