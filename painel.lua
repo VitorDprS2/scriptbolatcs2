@@ -1,23 +1,19 @@
 -- ============================================
 -- VITORXYZ - ALTERADOR DE BALL
--- Key + HWID Lock + Painel Completo
+-- Key + HWID + Painel Completo (Tamanho Infinito + Textura + Mesh)
 -- ============================================
 
 local player = game.Players.LocalPlayer
 
--- ===== HWID =====
 local function getHWID()
     local hwid = nil
     pcall(function()
         hwid = game:GetService("RbxAnalyticsService"):GetClientId()
     end)
-    if not hwid then
-        hwid = tostring(player.UserId)
-    end
+    if not hwid then hwid = tostring(player.UserId) end
     return tostring(hwid)
 end
 
--- ===== KEYS =====
 local keysValidas = {
     ["A7K9-M2XP-4QW8-N3RT"] = "",
     ["B4L8-N5VZ-7YT2-P9MK"] = "",
@@ -241,7 +237,7 @@ local keysValidas = {
     ["L2W5-Z1DT-3EQ4-I8JL"] = "",
 }
 
--- ===== UI DE KEY =====
+-- ===== UI KEY =====
 local keyGui = Instance.new("ScreenGui")
 keyGui.Name = "VitorxyzKey"
 keyGui.Parent = player.PlayerGui
@@ -358,7 +354,6 @@ local corOriginal = nil
 local corSelecionada = Color3.fromRGB(255, 255, 255)
 local tamanhoMultiplier = 1.0
 
--- ===== FUNCOES =====
 local function findBall()
     local stadium = workspace:FindFirstChild("WorkspaceStadiumMap1")
     if stadium then
@@ -400,6 +395,32 @@ local function resetarTamanho()
     local m = b:FindFirstChildWhichIsA("SpecialMesh")
     if m then m.Scale = Vector3.new(1, 1, 1) end
     tamanhoMultiplier = 1.0
+end
+
+local function aplicarTextura(id)
+    local b = findBall()
+    if not b then return end
+    for _, c in ipairs(b:GetChildren()) do
+        if c:IsA("Texture") or c:IsA("Decal") then c:Destroy() end
+    end
+    local t = Instance.new("Texture", b)
+    t.Texture = id
+    t.Face = Enum.NormalId.Top
+    local t2 = Instance.new("Texture", b)
+    t2.Texture = id
+    t2.Face = Enum.NormalId.Bottom
+end
+
+local function aplicarMesh(id)
+    local b = findBall()
+    if not b then return end
+    local m = b:FindFirstChildWhichIsA("SpecialMesh")
+    if not m then
+        m = Instance.new("SpecialMesh", b)
+    end
+    m.MeshId = id
+    m.MeshType = Enum.MeshType.FileMesh
+    m.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
 end
 
 local function removerTexturas()
@@ -446,8 +467,8 @@ end
 
 -- ===== UI =====
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 340, 0, 620)
-main.Position = UDim2.new(0.5, -170, 0.5, -310)
+main.Size = UDim2.new(0, 340, 0, 700)
+main.Position = UDim2.new(0.5, -170, 0.5, -350)
 main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 main.BorderSizePixel = 0
 main.Active = true
@@ -493,10 +514,10 @@ conteudo.Size = UDim2.new(1, 0, 1, -40)
 conteudo.Position = UDim2.new(0, 0, 0, 40)
 conteudo.BackgroundTransparency = 1
 
--- Botao 1: Bola Nova
+-- BOLA NOVA
 local b1 = Instance.new("TextButton", conteudo)
 b1.Size = UDim2.new(0.85, 0, 0, 32)
-b1.Position = UDim2.new(0.075, 0, 0.02, 0)
+b1.Position = UDim2.new(0.075, 0, 0.01, 0)
 b1.Text = "BOLA NOVA: OFF"
 b1.TextColor3 = Color3.fromRGB(255, 255, 255)
 b1.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -505,10 +526,10 @@ b1.TextSize = 13
 b1.BorderSizePixel = 0
 Instance.new("UICorner", b1).CornerRadius = UDim.new(0, 8)
 
--- Botao 2: Bola Lisa
+-- BOLA LISA
 local b2 = Instance.new("TextButton", conteudo)
 b2.Size = UDim2.new(0.85, 0, 0, 32)
-b2.Position = UDim2.new(0.075, 0, 0.10, 0)
+b2.Position = UDim2.new(0.075, 0, 0.08, 0)
 b2.Text = "BOLA LISA: OFF"
 b2.TextColor3 = Color3.fromRGB(255, 255, 255)
 b2.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -517,17 +538,16 @@ b2.TextSize = 13
 b2.BorderSizePixel = 0
 Instance.new("UICorner", b2).CornerRadius = UDim.new(0, 8)
 
--- Label cores
+-- LABEL CORES
 local cl = Instance.new("TextLabel", conteudo)
 cl.Size = UDim2.new(0.85, 0, 0, 18)
-cl.Position = UDim2.new(0.075, 0, 0.18, 0)
+cl.Position = UDim2.new(0.075, 0, 0.15, 0)
 cl.Text = "COR DA BOLA LISA:"
 cl.TextColor3 = Color3.fromRGB(0, 170, 255)
 cl.BackgroundTransparency = 1
 cl.Font = Enum.Font.GothamBold
 cl.TextSize = 11
 
--- Cores
 local coresLista = {
     Color3.fromRGB(255, 255, 255),
     Color3.fromRGB(0, 0, 0),
@@ -543,7 +563,7 @@ local coresLista = {
 
 local cf = Instance.new("Frame", conteudo)
 cf.Size = UDim2.new(0.85, 0, 0, 70)
-cf.Position = UDim2.new(0.075, 0, 0.22, 0)
+cf.Position = UDim2.new(0.075, 0, 0.19, 0)
 cf.BackgroundTransparency = 1
 local cg = Instance.new("UIGridLayout", cf)
 cg.CellSize = UDim2.new(0, 30, 0, 30)
@@ -569,20 +589,19 @@ for i, c in ipairs(coresLista) do
     end)
 end
 
--- Label Tamanho
+-- TAMANHO
 local tl = Instance.new("TextLabel", conteudo)
 tl.Size = UDim2.new(0.85, 0, 0, 18)
-tl.Position = UDim2.new(0.075, 0, 0.38, 0)
-tl.Text = "TAMANHO VISUAL:"
+tl.Position = UDim2.new(0.075, 0, 0.31, 0)
+tl.Text = "TAMANHO VISUAL (Sem Limite):"
 tl.TextColor3 = Color3.fromRGB(0, 170, 255)
 tl.BackgroundTransparency = 1
 tl.Font = Enum.Font.GothamBold
 tl.TextSize = 11
 
--- Botao -
 local bm = Instance.new("TextButton", conteudo)
 bm.Size = UDim2.new(0.15, 0, 0, 35)
-bm.Position = UDim2.new(0.075, 0, 0.42, 0)
+bm.Position = UDim2.new(0.075, 0, 0.35, 0)
 bm.Text = "-"
 bm.TextColor3 = Color3.fromRGB(255, 255, 255)
 bm.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
@@ -591,10 +610,9 @@ bm.TextSize = 20
 bm.BorderSizePixel = 0
 Instance.new("UICorner", bm).CornerRadius = UDim.new(0, 5)
 
--- Botao +
 local bp = Instance.new("TextButton", conteudo)
 bp.Size = UDim2.new(0.15, 0, 0, 35)
-bp.Position = UDim2.new(0.77, 0, 0.42, 0)
+bp.Position = UDim2.new(0.77, 0, 0.35, 0)
 bp.Text = "+"
 bp.TextColor3 = Color3.fromRGB(255, 255, 255)
 bp.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
@@ -603,10 +621,9 @@ bp.TextSize = 20
 bp.BorderSizePixel = 0
 Instance.new("UICorner", bp).CornerRadius = UDim.new(0, 5)
 
--- Valor
 local vt = Instance.new("TextLabel", conteudo)
 vt.Size = UDim2.new(0.5, 0, 0, 35)
-vt.Position = UDim2.new(0.25, 0, 0.42, 0)
+vt.Position = UDim2.new(0.25, 0, 0.35, 0)
 vt.Text = "1.0x"
 vt.TextColor3 = Color3.fromRGB(255, 255, 255)
 vt.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -615,10 +632,9 @@ vt.TextSize = 16
 vt.BorderSizePixel = 0
 Instance.new("UICorner", vt).CornerRadius = UDim.new(0, 5)
 
--- Botao Resetar Tamanho
 local br = Instance.new("TextButton", conteudo)
 br.Size = UDim2.new(0.85, 0, 0, 25)
-br.Position = UDim2.new(0.075, 0, 0.50, 0)
+br.Position = UDim2.new(0.075, 0, 0.43, 0)
 br.Text = "RESETAR TAMANHO"
 br.TextColor3 = Color3.fromRGB(255, 200, 200)
 br.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
@@ -627,10 +643,60 @@ br.TextSize = 11
 br.BorderSizePixel = 0
 Instance.new("UICorner", br).CornerRadius = UDim.new(0, 5)
 
--- Botao Remover Textura
+-- ID DE TEXTURA
+local btnTextura = Instance.new("TextButton", conteudo)
+btnTextura.Size = UDim2.new(0.85, 0, 0, 30)
+btnTextura.Position = UDim2.new(0.075, 0, 0.49, 0)
+btnTextura.Text = "ID de Textura"
+btnTextura.TextColor3 = Color3.fromRGB(0, 170, 255)
+btnTextura.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+btnTextura.Font = Enum.Font.GothamBold
+btnTextura.TextSize = 13
+btnTextura.BorderSizePixel = 0
+Instance.new("UICorner", btnTextura).CornerRadius = UDim.new(0, 8)
+
+local texturaInput = Instance.new("TextBox", conteudo)
+texturaInput.Size = UDim2.new(0.85, 0, 0, 30)
+texturaInput.Position = UDim2.new(0.075, 0, 0.49, 0)
+texturaInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+texturaInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+texturaInput.PlaceholderText = "rbxassetid://ID_DA_TEXTURA"
+texturaInput.Text = ""
+texturaInput.Font = Enum.Font.Gotham
+texturaInput.TextSize = 11
+texturaInput.Visible = false
+texturaInput.BorderSizePixel = 0
+Instance.new("UICorner", texturaInput).CornerRadius = UDim.new(0, 8)
+
+-- ID DE MESH
+local btnMesh = Instance.new("TextButton", conteudo)
+btnMesh.Size = UDim2.new(0.85, 0, 0, 30)
+btnMesh.Position = UDim2.new(0.075, 0, 0.56, 0)
+btnMesh.Text = "ID de Mesh (MeshContent)"
+btnMesh.TextColor3 = Color3.fromRGB(0, 170, 255)
+btnMesh.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+btnMesh.Font = Enum.Font.GothamBold
+btnMesh.TextSize = 13
+btnMesh.BorderSizePixel = 0
+Instance.new("UICorner", btnMesh).CornerRadius = UDim.new(0, 8)
+
+local meshInput = Instance.new("TextBox", conteudo)
+meshInput.Size = UDim2.new(0.85, 0, 0, 30)
+meshInput.Position = UDim2.new(0.075, 0, 0.56, 0)
+meshInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+meshInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+meshInput.PlaceholderText = "rbxassetid://ID_DA_MESH"
+meshInput.Text = ""
+meshInput.Font = Enum.Font.Gotham
+meshInput.TextSize = 11
+meshInput.Visible = false
+meshInput.BorderSizePixel = 0
+Instance.new("UICorner", meshInput).CornerRadius = UDim.new(0, 8)
+
+-- REMOVER TEXTURA
 local bt = Instance.new("TextButton", conteudo)
 bt.Size = UDim2.new(0.85, 0, 0, 32)
-bt.Position = UDim2.new(0.075, 0, 0.56, 0)
+bt.Position = UDim2.new(0.075, 0, 0.63, 0)
 bt.Text = "REMOVER TEXTURA"
 bt.TextColor3 = Color3.fromRGB(255, 255, 255)
 bt.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -639,10 +705,10 @@ bt.TextSize = 13
 bt.BorderSizePixel = 0
 Instance.new("UICorner", bt).CornerRadius = UDim.new(0, 8)
 
--- Botao Resetar Mesh
+-- RESETAR MESH
 local brm = Instance.new("TextButton", conteudo)
 brm.Size = UDim2.new(0.85, 0, 0, 32)
-brm.Position = UDim2.new(0.075, 0, 0.64, 0)
+brm.Position = UDim2.new(0.075, 0, 0.71, 0)
 brm.Text = "RESETAR MESH"
 brm.TextColor3 = Color3.fromRGB(255, 255, 255)
 brm.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -680,16 +746,14 @@ b2.MouseButton1Click:Connect(function()
 end)
 
 bp.MouseButton1Click:Connect(function()
-    if tamanhoMultiplier < 10.0 then
-        tamanhoMultiplier = math.floor((tamanhoMultiplier + 0.5) * 10) / 10
-        vt.Text = string.format("%.1fx", tamanhoMultiplier)
-        aplicarTamanho()
-    end
+    tamanhoMultiplier = tamanhoMultiplier + 0.5
+    vt.Text = string.format("%.1fx", tamanhoMultiplier)
+    aplicarTamanho()
 end)
 
 bm.MouseButton1Click:Connect(function()
     if tamanhoMultiplier > 0.5 then
-        tamanhoMultiplier = math.floor((tamanhoMultiplier - 0.5) * 10) / 10
+        tamanhoMultiplier = tamanhoMultiplier - 0.5
         vt.Text = string.format("%.1fx", tamanhoMultiplier)
         aplicarTamanho()
     end
@@ -698,6 +762,36 @@ end)
 br.MouseButton1Click:Connect(function()
     resetarTamanho()
     vt.Text = "1.0x"
+end)
+
+btnTextura.MouseButton1Click:Connect(function()
+    texturaInput.Visible = not texturaInput.Visible
+    if texturaInput.Visible then texturaInput:CaptureFocus() end
+end)
+
+texturaInput.FocusLost:Connect(function(e)
+    if e then
+        local id = texturaInput.Text
+        if id and id ~= "" then
+            aplicarTextura(id)
+            texturaInput.Visible = false
+        end
+    end
+end)
+
+btnMesh.MouseButton1Click:Connect(function()
+    meshInput.Visible = not meshInput.Visible
+    if meshInput.Visible then meshInput:CaptureFocus() end
+end)
+
+meshInput.FocusLost:Connect(function(e)
+    if e then
+        local id = meshInput.Text
+        if id and id ~= "" then
+            aplicarMesh(id)
+            meshInput.Visible = false
+        end
+    end
 end)
 
 bt.MouseButton1Click:Connect(function()
@@ -719,7 +813,7 @@ minBtn.MouseButton1Click:Connect(function()
         minBtn.Text = "+"
     else
         conteudo.Visible = true
-        main.Size = UDim2.new(0, 340, 0, 620)
+        main.Size = UDim2.new(0, 340, 0, 700)
         minBtn.Text = "-"
     end
 end)
@@ -733,11 +827,10 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
             minBtn.Text = "+"
         else
             conteudo.Visible = true
-            main.Size = UDim2.new(0, 340, 0, 620)
+            main.Size = UDim2.new(0, 340, 0, 700)
             minBtn.Text = "-"
         end
     end
 end)
 
-print("Vitorxyz - Alterador de ball carregado!")
-print("Pressione K para minimizar/abrir")
+print("Vitorxyz carregado!")
