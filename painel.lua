@@ -1,5 +1,5 @@
 -- Vitorxyz - Alterador de ball
--- UI Preta e Branca + Bola Lisa com Cores + Keybind
+-- UI Preta e Branca + Bola Lisa + Cores + Tamanho + Keybind
 -- Criado por: Vitorxyz
 
 local player = game.Players.LocalPlayer
@@ -15,6 +15,8 @@ local bolaLisaAtiva = false
 local corOriginal = nil
 local corSelecionada = Color3.fromRGB(255, 255, 255)
 local minimizado = false
+local tamanhoMultiplier = 1.0
+local tamanhoOriginal = nil
 
 -- ===== FUNCAO PARA ENCONTRAR A BOLA =====
 local function findBall()
@@ -55,6 +57,51 @@ local function findBall()
     return nil
 end
 
+-- ===== FUNCAO PARA ALTERAR TAMANHO DA BOLA =====
+local function aplicarTamanho()
+    local ball = findBall()
+    if not ball then return false end
+    
+    if not tamanhoOriginal then
+        tamanhoOriginal = ball.Size
+    end
+    
+    -- Calcula novo tamanho
+    local novoTamanho = Vector3.new(
+        tamanhoOriginal.X * tamanhoMultiplier,
+        tamanhoOriginal.Y * tamanhoMultiplier,
+        tamanhoOriginal.Z * tamanhoMultiplier
+    )
+    
+    -- Aplica o tamanho
+    pcall(function()
+        ball.Size = novoTamanho
+    end)
+    
+    -- Se tiver Mesh, ajusta a escala também
+    local mesh = ball:FindFirstChildWhichIsA("SpecialMesh")
+    if mesh then
+        pcall(function()
+            mesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
+        end)
+    end
+    
+    return true
+end
+
+-- ===== FUNCAO PARA RESETAR TAMANHO =====
+local function resetarTamanho()
+    local ball = findBall()
+    if not ball then return false end
+    if tamanhoOriginal then
+        pcall(function()
+            ball.Size = tamanhoOriginal
+        end)
+    end
+    tamanhoMultiplier = 1.0
+    return true
+end
+
 -- ===== FUNCAO PARA APLICAR MESH =====
 local function aplicarMesh(meshId)
     local ball = findBall()
@@ -71,7 +118,7 @@ local function aplicarMesh(meshId)
     end
     mesh.MeshId = meshId
     mesh.MeshType = Enum.MeshType.FileMesh
-    mesh.Scale = Vector3.new(1, 1, 1)
+    mesh.Scale = Vector3.new(tamanhoMultiplier, tamanhoMultiplier, tamanhoMultiplier)
     return true
 end
 
@@ -179,8 +226,8 @@ end
 -- ============================================
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 320, 0, 560)
-main.Position = UDim2.new(0.5, -160, 0.5, -280)
+main.Size = UDim2.new(0, 340, 0, 680)
+main.Position = UDim2.new(0.5, -170, 0.5, -340)
 main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 main.BorderSizePixel = 0
 main.Active = true
@@ -233,7 +280,7 @@ local sc = Instance.new("UIStroke", closeBtn)
 sc.Color = Color3.fromRGB(255, 255, 255)
 sc.Thickness = 1
 
--- ===== CONTAINER DE CONTEUDO (para minimizar) =====
+-- ===== CONTAINER DE CONTEUDO =====
 local conteudo = Instance.new("Frame", main)
 conteudo.Size = UDim2.new(1, 0, 1, -40)
 conteudo.Position = UDim2.new(0, 0, 0, 40)
@@ -241,13 +288,13 @@ conteudo.BackgroundTransparency = 1
 
 -- BOTAO BOLA NOVA
 local btnBolaNova = Instance.new("TextButton", conteudo)
-btnBolaNova.Size = UDim2.new(0.85, 0, 0, 35)
-btnBolaNova.Position = UDim2.new(0.075, 0, 0.04, 0)
+btnBolaNova.Size = UDim2.new(0.85, 0, 0, 32)
+btnBolaNova.Position = UDim2.new(0.075, 0, 0.02, 0)
 btnBolaNova.Text = "BOLA NOVA: OFF"
 btnBolaNova.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnBolaNova.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnBolaNova.Font = Enum.Font.GothamBold
-btnBolaNova.TextSize = 14
+btnBolaNova.TextSize = 13
 btnBolaNova.BorderSizePixel = 0
 Instance.new("UICorner", btnBolaNova).CornerRadius = UDim.new(0, 8)
 local s1 = Instance.new("UIStroke", btnBolaNova)
@@ -256,13 +303,13 @@ s1.Thickness = 1
 
 -- BOTAO BOLA LISA
 local btnBolaLisa = Instance.new("TextButton", conteudo)
-btnBolaLisa.Size = UDim2.new(0.85, 0, 0, 35)
-btnBolaLisa.Position = UDim2.new(0.075, 0, 0.12, 0)
+btnBolaLisa.Size = UDim2.new(0.85, 0, 0, 32)
+btnBolaLisa.Position = UDim2.new(0.075, 0, 0.09, 0)
 btnBolaLisa.Text = "BOLA LISA: OFF"
 btnBolaLisa.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnBolaLisa.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnBolaLisa.Font = Enum.Font.GothamBold
-btnBolaLisa.TextSize = 14
+btnBolaLisa.TextSize = 13
 btnBolaLisa.BorderSizePixel = 0
 Instance.new("UICorner", btnBolaLisa).CornerRadius = UDim.new(0, 8)
 local s2 = Instance.new("UIStroke", btnBolaLisa)
@@ -271,13 +318,13 @@ s2.Thickness = 1
 
 -- LABEL CORES
 local corLabel = Instance.new("TextLabel", conteudo)
-corLabel.Size = UDim2.new(0.85, 0, 0, 20)
-corLabel.Position = UDim2.new(0.075, 0, 0.20, 0)
+corLabel.Size = UDim2.new(0.85, 0, 0, 18)
+corLabel.Position = UDim2.new(0.075, 0, 0.16, 0)
 corLabel.Text = "COR DA BOLA LISA:"
 corLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
 corLabel.BackgroundTransparency = 1
 corLabel.Font = Enum.Font.GothamBold
-corLabel.TextSize = 12
+corLabel.TextSize = 11
 
 -- BOTOES DE COR
 local cores = {
@@ -295,7 +342,7 @@ local cores = {
 
 local corFrame = Instance.new("Frame", conteudo)
 corFrame.Size = UDim2.new(0.85, 0, 0, 70)
-corFrame.Position = UDim2.new(0.075, 0, 0.24, 0)
+corFrame.Position = UDim2.new(0.075, 0, 0.20, 0)
 corFrame.BackgroundTransparency = 1
 
 local corGrid = Instance.new("UIGridLayout", corFrame)
@@ -310,10 +357,7 @@ for i, c in ipairs(cores) do
     btnCor.Text = ""
     btnCor.BorderSizePixel = 0
     btnCor.LayoutOrder = i
-    
-    local cc = Instance.new("UICorner", btnCor)
-    cc.CornerRadius = UDim.new(1, 0)
-    
+    Instance.new("UICorner", btnCor).CornerRadius = UDim.new(1, 0)
     local stroke = Instance.new("UIStroke", btnCor)
     stroke.Color = Color3.fromRGB(255, 255, 255)
     stroke.Thickness = 2
@@ -341,15 +385,82 @@ for i, c in ipairs(cores) do
     end)
 end
 
+-- ===== SECAO TAMANHO DA BOLA =====
+local sizeLabel = Instance.new("TextLabel", conteudo)
+sizeLabel.Size = UDim2.new(0.85, 0, 0, 18)
+sizeLabel.Position = UDim2.new(0.075, 0, 0.36, 0)
+sizeLabel.Text = "TAMANHO DA BOLA:"
+sizeLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
+sizeLabel.BackgroundTransparency = 1
+sizeLabel.Font = Enum.Font.GothamBold
+sizeLabel.TextSize = 11
+
+local btnTamanhoMenos = Instance.new("TextButton", conteudo)
+btnTamanhoMenos.Size = UDim2.new(0.15, 0, 0, 35)
+btnTamanhoMenos.Position = UDim2.new(0.075, 0, 0.40, 0)
+btnTamanhoMenos.Text = "-"
+btnTamanhoMenos.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnTamanhoMenos.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
+btnTamanhoMenos.Font = Enum.Font.GothamBold
+btnTamanhoMenos.TextSize = 20
+btnTamanhoMenos.BorderSizePixel = 0
+Instance.new("UICorner", btnTamanhoMenos).CornerRadius = UDim.new(0, 5)
+local sTm = Instance.new("UIStroke", btnTamanhoMenos)
+sTm.Color = Color3.fromRGB(255, 100, 100)
+sTm.Thickness = 1
+
+local btnTamanhoMais = Instance.new("TextButton", conteudo)
+btnTamanhoMais.Size = UDim2.new(0.15, 0, 0, 35)
+btnTamanhoMais.Position = UDim2.new(0.77, 0, 0.40, 0)
+btnTamanhoMais.Text = "+"
+btnTamanhoMais.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnTamanhoMais.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
+btnTamanhoMais.Font = Enum.Font.GothamBold
+btnTamanhoMais.TextSize = 20
+btnTamanhoMais.BorderSizePixel = 0
+Instance.new("UICorner", btnTamanhoMais).CornerRadius = UDim.new(0, 5)
+local sTp = Instance.new("UIStroke", btnTamanhoMais)
+sTp.Color = Color3.fromRGB(100, 255, 100)
+sTp.Thickness = 1
+
+local lblTamanho = Instance.new("TextLabel", conteudo)
+lblTamanho.Size = UDim2.new(0.5, 0, 0, 35)
+lblTamanho.Position = UDim2.new(0.25, 0, 0.40, 0)
+lblTamanho.Text = "1.0x"
+lblTamanho.TextColor3 = Color3.fromRGB(255, 255, 255)
+lblTamanho.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+lblTamanho.Font = Enum.Font.GothamBold
+lblTamanho.TextSize = 16
+lblTamanho.BorderSizePixel = 0
+Instance.new("UICorner", lblTamanho).CornerRadius = UDim.new(0, 5)
+local sLbl = Instance.new("UIStroke", lblTamanho)
+sLbl.Color = Color3.fromRGB(80, 80, 80)
+sLbl.Thickness = 1
+
+-- BOTAO RESETAR TAMANHO
+local btnResetarTamanho = Instance.new("TextButton", conteudo)
+btnResetarTamanho.Size = UDim2.new(0.85, 0, 0, 25)
+btnResetarTamanho.Position = UDim2.new(0.075, 0, 0.48, 0)
+btnResetarTamanho.Text = "RESETAR TAMANHO"
+btnResetarTamanho.TextColor3 = Color3.fromRGB(255, 200, 200)
+btnResetarTamanho.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+btnResetarTamanho.Font = Enum.Font.GothamBold
+btnResetarTamanho.TextSize = 11
+btnResetarTamanho.BorderSizePixel = 0
+Instance.new("UICorner", btnResetarTamanho).CornerRadius = UDim.new(0, 5)
+local sRt = Instance.new("UIStroke", btnResetarTamanho)
+sRt.Color = Color3.fromRGB(120, 60, 60)
+sRt.Thickness = 1
+
 -- BOTAO ID DE TEXTURA
 local btnTextura = Instance.new("TextButton", conteudo)
-btnTextura.Size = UDim2.new(0.85, 0, 0, 35)
-btnTextura.Position = UDim2.new(0.075, 0, 0.40, 0)
+btnTextura.Size = UDim2.new(0.85, 0, 0, 32)
+btnTextura.Position = UDim2.new(0.075, 0, 0.54, 0)
 btnTextura.Text = "ID de Textura"
 btnTextura.TextColor3 = Color3.fromRGB(0, 170, 255)
 btnTextura.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnTextura.Font = Enum.Font.GothamBold
-btnTextura.TextSize = 14
+btnTextura.TextSize = 13
 btnTextura.BorderSizePixel = 0
 Instance.new("UICorner", btnTextura).CornerRadius = UDim.new(0, 8)
 local s3 = Instance.new("UIStroke", btnTextura)
@@ -358,13 +469,13 @@ s3.Thickness = 1
 
 -- BOTAO ID DE MESH
 local btnMesh = Instance.new("TextButton", conteudo)
-btnMesh.Size = UDim2.new(0.85, 0, 0, 35)
-btnMesh.Position = UDim2.new(0.075, 0, 0.48, 0)
+btnMesh.Size = UDim2.new(0.85, 0, 0, 32)
+btnMesh.Position = UDim2.new(0.075, 0, 0.61, 0)
 btnMesh.Text = "ID de Mesh (MeshContent)"
 btnMesh.TextColor3 = Color3.fromRGB(0, 170, 255)
 btnMesh.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnMesh.Font = Enum.Font.GothamBold
-btnMesh.TextSize = 13
+btnMesh.TextSize = 12
 btnMesh.BorderSizePixel = 0
 Instance.new("UICorner", btnMesh).CornerRadius = UDim.new(0, 8)
 local s4 = Instance.new("UIStroke", btnMesh)
@@ -373,13 +484,13 @@ s4.Thickness = 1
 
 -- BOTAO REMOVER TEXTURA
 local btnRemoverTex = Instance.new("TextButton", conteudo)
-btnRemoverTex.Size = UDim2.new(0.85, 0, 0, 35)
-btnRemoverTex.Position = UDim2.new(0.075, 0, 0.56, 0)
+btnRemoverTex.Size = UDim2.new(0.85, 0, 0, 32)
+btnRemoverTex.Position = UDim2.new(0.075, 0, 0.68, 0)
 btnRemoverTex.Text = "REMOVER TEXTURA"
 btnRemoverTex.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnRemoverTex.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnRemoverTex.Font = Enum.Font.GothamBold
-btnRemoverTex.TextSize = 14
+btnRemoverTex.TextSize = 13
 btnRemoverTex.BorderSizePixel = 0
 Instance.new("UICorner", btnRemoverTex).CornerRadius = UDim.new(0, 8)
 local s5 = Instance.new("UIStroke", btnRemoverTex)
@@ -388,13 +499,13 @@ s5.Thickness = 1
 
 -- BOTAO RESETAR MESH
 local btnResetarMesh = Instance.new("TextButton", conteudo)
-btnResetarMesh.Size = UDim2.new(0.85, 0, 0, 35)
-btnResetarMesh.Position = UDim2.new(0.075, 0, 0.64, 0)
+btnResetarMesh.Size = UDim2.new(0.85, 0, 0, 32)
+btnResetarMesh.Position = UDim2.new(0.075, 0, 0.75, 0)
 btnResetarMesh.Text = "RESETAR MESH"
 btnResetarMesh.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnResetarMesh.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 btnResetarMesh.Font = Enum.Font.GothamBold
-btnResetarMesh.TextSize = 14
+btnResetarMesh.TextSize = 13
 btnResetarMesh.BorderSizePixel = 0
 Instance.new("UICorner", btnResetarMesh).CornerRadius = UDim.new(0, 8)
 local s6 = Instance.new("UIStroke", btnResetarMesh)
@@ -403,27 +514,27 @@ s6.Thickness = 1
 
 -- ===== CAMPOS DE INPUT =====
 local textureInput = Instance.new("TextBox", conteudo)
-textureInput.Size = UDim2.new(0.85, 0, 0, 30)
-textureInput.Position = UDim2.new(0.075, 0, 0.40, 0)
+textureInput.Size = UDim2.new(0.85, 0, 0, 28)
+textureInput.Position = UDim2.new(0.075, 0, 0.54, 0)
 textureInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 textureInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 textureInput.PlaceholderText = "rbxassetid://ID_DA_TEXTURA"
 textureInput.Text = ""
 textureInput.Font = Enum.Font.Gotham
-textureInput.TextSize = 12
+textureInput.TextSize = 11
 textureInput.Visible = false
 textureInput.BorderSizePixel = 0
 Instance.new("UICorner", textureInput).CornerRadius = UDim.new(0, 8)
 
 local meshInput = Instance.new("TextBox", conteudo)
-meshInput.Size = UDim2.new(0.85, 0, 0, 30)
-meshInput.Position = UDim2.new(0.075, 0, 0.48, 0)
+meshInput.Size = UDim2.new(0.85, 0, 0, 28)
+meshInput.Position = UDim2.new(0.075, 0, 0.61, 0)
 meshInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 meshInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 meshInput.PlaceholderText = "rbxassetid://ID_DA_MESH"
 meshInput.Text = ""
 meshInput.Font = Enum.Font.Gotham
-meshInput.TextSize = 12
+meshInput.TextSize = 11
 meshInput.Visible = false
 meshInput.BorderSizePixel = 0
 Instance.new("UICorner", meshInput).CornerRadius = UDim.new(0, 8)
@@ -457,6 +568,30 @@ btnBolaLisa.MouseButton1Click:Connect(function()
         btnBolaLisa.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         resetarBolaLisa()
     end
+end)
+
+-- TAMANHO +
+btnTamanhoMais.MouseButton1Click:Connect(function()
+    if tamanhoMultiplier < 10.0 then
+        tamanhoMultiplier = math.floor((tamanhoMultiplier + 0.5) * 10) / 10
+        lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
+        aplicarTamanho()
+    end
+end)
+
+-- TAMANHO -
+btnTamanhoMenos.MouseButton1Click:Connect(function()
+    if tamanhoMultiplier > 0.5 then
+        tamanhoMultiplier = math.floor((tamanhoMultiplier - 0.5) * 10) / 10
+        lblTamanho.Text = string.format("%.1fx", tamanhoMultiplier)
+        aplicarTamanho()
+    end
+end)
+
+-- RESETAR TAMANHO
+btnResetarTamanho.MouseButton1Click:Connect(function()
+    resetarTamanho()
+    lblTamanho.Text = "1.0x"
 end)
 
 btnTextura.MouseButton1Click:Connect(function()
@@ -497,20 +632,18 @@ btnResetarMesh.MouseButton1Click:Connect(function()
     resetarMesh()
 end)
 
--- MINIMIZAR
 minBtn.MouseButton1Click:Connect(function()
     minimizado = not minimizado
     conteudo.Visible = not minimizado
     if minimizado then
-        main.Size = UDim2.new(0, 320, 0, 40)
+        main.Size = UDim2.new(0, 340, 0, 40)
         minBtn.Text = "+"
     else
-        main.Size = UDim2.new(0, 320, 0, 560)
+        main.Size = UDim2.new(0, 340, 0, 680)
         minBtn.Text = "-"
     end
 end)
 
--- FECHAR
 closeBtn.MouseButton1Click:Connect(function()
     main.Visible = not main.Visible
 end)
@@ -525,10 +658,10 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
         minimizado = not minimizado
         conteudo.Visible = not minimizado
         if minimizado then
-            main.Size = UDim2.new(0, 320, 0, 40)
+            main.Size = UDim2.new(0, 340, 0, 40)
             minBtn.Text = "+"
         else
-            main.Size = UDim2.new(0, 320, 0, 560)
+            main.Size = UDim2.new(0, 340, 0, 680)
             minBtn.Text = "-"
         end
     end
@@ -537,4 +670,4 @@ end)
 -- ===== INICIALIZACAO =====
 print("Vitorxyz - Alterador de ball carregado!")
 print("Pressione K para minimizar/abrir o hub")
-print("Bola Lisa com 10 cores disponiveis!")
+print("Bola Lisa + 10 cores + Tamanho disponiveis!")
